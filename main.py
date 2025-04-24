@@ -33,7 +33,7 @@ def main(page: ft.Page):
             input_container,
             ft.VerticalDivider(
                 width=10,
-                color=ft.colors.WHITE,
+                color="#FFFFFF",
                 thickness=2
             ),
             output_container
@@ -43,7 +43,7 @@ def main(page: ft.Page):
         vertical_alignment=ft.CrossAxisAlignment.START
     )
 
-    page.on_resize = page_resize
+    page.on_resized = page_resize
     page.add(layout)
 
 ft.app(
