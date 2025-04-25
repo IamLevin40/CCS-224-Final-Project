@@ -95,51 +95,98 @@ class OutputPanel(ft.Container):
         )
 
     def update_output(self, x_vals, y_vals):
-        # Lagrange Interpolation
+        # Set loading states
+        for i in range(3):
+            self.graph_columns[i].controls[1].content.content = ft.Text(
+                "Computing...",
+                size=16,
+                color="#888888",
+                text_align=ft.TextAlign.CENTER
+            )
+            self.info_texts[i].value = "Calculating..."
+            self.info_texts[i].color = "#888888"
+            self.graph_columns[i].controls[1].update()
+            self.info_texts[i].update()
+
+        # Compute and update each algorithm
+        lagrange_results = self.compute_lagrange(x_vals, y_vals)
+        self.update_lagrange_ui(lagrange_results)
+
+        newton_results = self.compute_newton(x_vals, y_vals)
+        self.update_newton_ui(newton_results)
+
+        barycentric_results = self.compute_barycentric(x_vals, y_vals)
+        self.update_barycentric_ui(barycentric_results)
+
+        self.update()
+
+    def compute_lagrange(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             lagrange_poly = LagrangeInterpolator(x_vals, y_vals)
-            self.lagrange_plot_graph(x_vals, y_vals, lagrange_poly)
-
+            encoded_image = self.graph_lagrange(x_vals, y_vals, lagrange_poly)
             expression = lagrange_poly.get_polynomial_expression()
             time_taken = lagrange_poly.get_interpolation_time()
+            return lagrange_poly, expression, time_taken, encoded_image
+        return None, None, None, None
 
-            self.info_texts[0].value = f"Lagrange Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
+    def update_lagrange_ui(self, results):
+        lagrange_poly, expression, time_taken, encoded_image = results
+        if lagrange_poly:
+            self.graph_columns[0].controls[1].content.content = Image(
+                src_base64=encoded_image,
+                fit=ImageFit.CONTAIN,
+                expand=True
+            )
+            self.info_texts[0].value = f"Time Taken: {time_taken:.10f} seconds\n\nLagrange Polynomial:\n{expression}"
             self.info_texts[0].color = "#000000"
         else:
             self.info_texts[0].value = "Not enough valid data points."
 
-        # Newton Interpolation
+    def compute_newton(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             newton_poly = NewtonInterpolator(x_vals, y_vals)
-            self.newton_plot_graph(x_vals, y_vals, newton_poly)
-
+            encoded_image = self.graph_newton(x_vals, y_vals, newton_poly)
             expression = newton_poly.get_polynomial_expression()
             time_taken = newton_poly.get_interpolation_time()
+            return newton_poly, expression, time_taken, encoded_image
+        return None, None, None, None
 
-            self.info_texts[1].value = f"Newton Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
+    def update_newton_ui(self, results):
+        newton_poly, expression, time_taken, encoded_image = results
+        if newton_poly:
+            self.graph_columns[1].controls[1].content.content = Image(
+                src_base64=encoded_image,
+                fit=ImageFit.CONTAIN,
+                expand=True
+            )
+            self.info_texts[1].value = f"Time Taken: {time_taken:.10f} seconds\n\nNewton Polynomial:\n{expression}"
             self.info_texts[1].color = "#000000"
         else:
             self.info_texts[1].value = "Not enough valid data points."
 
-        # Barycentric Interpolation
+    def compute_barycentric(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             barycentric_poly = BarycentricInterpolator(x_vals, y_vals)
-            self.barycentric_plot_graph(x_vals, y_vals, barycentric_poly)
-
+            encoded_image = self.graph_barycentric(x_vals, y_vals, barycentric_poly)
             expression = barycentric_poly.get_polynomial_expression()
             time_taken = barycentric_poly.get_interpolation_time()
+            return barycentric_poly, expression, time_taken, encoded_image
+        return None, None, None, None
 
-            self.info_texts[2].value = f"Barycentric Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
+    def update_barycentric_ui(self, results):
+        barycentric_poly, expression, time_taken, encoded_image = results
+        if barycentric_poly:
+            self.graph_columns[2].controls[1].content.content = Image(
+                src_base64=encoded_image,
+                fit=ImageFit.CONTAIN,
+                expand=True
+            )
+            self.info_texts[2].value = f"Time Taken: {time_taken:.10f} seconds\n\nBarycentric Polynomial:\n{expression}"
             self.info_texts[2].color = "#000000"
         else:
             self.info_texts[2].value = "Not enough valid data points."
 
-        for text in self.info_texts:
-            text.update()
-
-        self.update()
-
-    def lagrange_plot_graph(self, x_vals, y_vals, lagrange_polynomial):
+    def graph_lagrange(self, x_vals, y_vals, lagrange_polynomial):
         x_range = np.linspace(min(x_vals), max(x_vals), 300)
         y_range = [lagrange_polynomial.interpolate(x) for x in x_range]
 
@@ -156,15 +203,12 @@ class OutputPanel(ft.Container):
         plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
         buf.seek(0)
 
-        self.graph_columns[0].controls[1].content.content = Image(
-            src_base64=base64.b64encode(buf.read()).decode('utf-8'),
-            fit=ImageFit.CONTAIN,
-            expand=True
-        )
-        self.graph_columns[0].controls[1].update()
+        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
         plt.close(fig)
+        
+        return encoded_image
     
-    def newton_plot_graph(self, x_vals, y_vals, newton_polynomial):
+    def graph_newton(self, x_vals, y_vals, newton_polynomial):
         x_range = np.linspace(min(x_vals), max(x_vals), 300)
         y_range = [newton_polynomial.interpolate(x) for x in x_range]
 
@@ -181,15 +225,12 @@ class OutputPanel(ft.Container):
         plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
         buf.seek(0)
 
-        self.graph_columns[1].controls[1].content.content = Image(
-            src_base64=base64.b64encode(buf.read()).decode('utf-8'),
-            fit=ImageFit.CONTAIN,
-            expand=True
-        )
-        self.graph_columns[1].controls[1].update()
+        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
         plt.close(fig)
+        
+        return encoded_image
 
-    def barycentric_plot_graph(self, x_vals, y_vals, barycentric_polynomial):
+    def graph_barycentric(self, x_vals, y_vals, barycentric_polynomial):
         x_range = np.linspace(min(x_vals), max(x_vals), 300)
         y_range = [barycentric_polynomial.interpolate(x) for x in x_range]
 
@@ -206,10 +247,7 @@ class OutputPanel(ft.Container):
         plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
         buf.seek(0)
 
-        self.graph_columns[2].controls[1].content.content = Image(
-            src_base64=base64.b64encode(buf.read()).decode('utf-8'),
-            fit=ImageFit.CONTAIN,
-            expand=True
-        )
-        self.graph_columns[2].controls[1].update()
+        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
         plt.close(fig)
+        
+        return encoded_image
