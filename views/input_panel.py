@@ -204,8 +204,29 @@ class InputPanel(ft.Container):
         self.rows.append(row_data)
         self.table.controls.append(row_data[0])
 
-    def build_with_button(self, on_find_polynomial_click):
-        find_button = ft.ElevatedButton("Find Polynomial", on_click=on_find_polynomial_click)
+    def clean_empty_rows(self):
+        i = len(self.rows) - 1
+        while i >= 0:
+            x_val = self.rows[i][1].value.strip()
+            y_val = self.rows[i][2].value.strip()
+            
+            if not x_val or not y_val:
+                self.delete_row(i)
+            i -= 1
+        
+        if not self.rows:
+            self.add_row()
+
+    def build_with_button(self, on_calculate):
+        def on_find_button_click(e):
+            self.clean_empty_rows()
+            on_calculate(e)
+        
+        find_button = ft.ElevatedButton(
+            "Find Polynomial", 
+            on_click=on_find_button_click
+        )
+
         return ft.Column(
             [
                 self,
