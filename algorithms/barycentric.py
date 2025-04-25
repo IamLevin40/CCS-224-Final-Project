@@ -1,5 +1,6 @@
 import time
 from fractions import Fraction
+from sympy import symbols, expand, Rational, Poly
 
 class BarycentricInterpolator:
     def __init__(self, x_vals, y_vals):
@@ -7,12 +8,13 @@ class BarycentricInterpolator:
         self.y_vals = [Fraction(y) for y in y_vals]
         self.n = len(x_vals)
         self.weights = self._compute_weights()
+        self.interpolation_eval_time = 0
 
         start_time = time.perf_counter()
         self.coeffs = self._compute_polynomial_coeffs()
         self.polynomial_expression = self._format_polynomial_expression()
         end_time = time.perf_counter()
-        self.interpolation_time = end_time - start_time
+        self.construction_time = end_time - start_time
 
     def _compute_weights(self):
         w = [Fraction(1) for _ in range(self.n)]
@@ -23,6 +25,8 @@ class BarycentricInterpolator:
         return w
 
     def interpolate(self, x):
+        start = time.perf_counter()
+        
         x = Fraction(x)
         numerator = Fraction(0)
         denominator = Fraction(0)
@@ -32,6 +36,10 @@ class BarycentricInterpolator:
             temp = self.weights[j] / (x - self.x_vals[j])
             numerator += temp * self.y_vals[j]
             denominator += temp
+
+        end = time.perf_counter()
+        self.interpolation_eval_time += end - start
+
         return numerator / denominator if denominator != 0 else 0
 
     def _compute_polynomial_coeffs(self):
@@ -54,37 +62,57 @@ class BarycentricInterpolator:
         return poly
 
     def _format_polynomial_expression(self):
-        def format_fraction(f):
-            return f"{f.numerator}/{f.denominator}" if f.denominator != 1 else str(f.numerator)
-
-        def superscript(n):
-            superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹"
-            return "".join(superscripts[int(d)] for d in str(n))
-
-        terms = []
+        x = symbols("x")
         degree = len(self.coeffs) - 1
-        for i in range(degree, -1, -1):
-            coeff = self.coeffs[i]
-            if coeff == 0:
-                continue
+        poly_expr = sum(Rational(coeff.numerator, coeff.denominator) * x**i for i, coeff in enumerate(self.coeffs))
+        poly_expr = expand(poly_expr)
 
-            sign = " + " if coeff > 0 and terms else (" - " if coeff < 0 else "")
-            coeff_abs = abs(coeff)
-            coeff_str = "" if coeff_abs == 1 and i != 0 else format_fraction(coeff_abs)
+        def to_unicode_poly_string(poly):
+            superscript_map = str.maketrans("0123456789-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻")
 
-            if i == 0:
-                term = f"{coeff_str}"
-            elif i == 1:
-                term = f"{coeff_str}x" if coeff_str else "x"
-            else:
-                term = f"{coeff_str}x{superscript(i)}" if coeff_str else f"x{superscript(i)}"
+            def frac_to_str(r):
+                r = Rational(r).limit_denominator()
+                return f"{r.numerator}" if r.denominator == 1 else f"{r.numerator}/{r.denominator}"
 
-            terms.append(f"{sign}{term}")
+            terms = []
+            poly = Poly(poly, x)
+            coeffs = poly.all_coeffs()
+            deg = len(coeffs) - 1
 
-        return "B(x) = " + "".join(terms)
+            for i, coeff in enumerate(coeffs):
+                power = deg - i
+                frac = Rational(coeff).limit_denominator()
+                if frac == 0:
+                    continue
+                sign = "-" if frac < 0 else "+"
+                abs_frac = abs(frac)
+                coeff_str = frac_to_str(abs_frac)
+
+                if abs_frac == 1 and power != 0:
+                    coeff_str = ""
+
+                if power == 0:
+                    term = f"{coeff_str}"
+                elif power == 1:
+                    term = f"{coeff_str}x"
+                else:
+                    term = f"{coeff_str}x{str(power).translate(superscript_map)}"
+
+                terms.append((sign, term))
+
+            if not terms:
+                return "0"
+
+            result = terms[0][1] if terms[0][0] == "+" else f"-{terms[0][1]}"
+            for sign, term in terms[1:]:
+                result += f" {sign} {term}"
+
+            return result
+
+        return f"B(x) = {to_unicode_poly_string(poly_expr)}"
 
     def get_polynomial_expression(self):
         return self.polynomial_expression
 
     def get_interpolation_time(self):
-        return self.interpolation_time
+        return self.construction_time + self.interpolation_eval_time

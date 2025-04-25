@@ -98,36 +98,39 @@ class OutputPanel(ft.Container):
         # Lagrange Interpolation
         if x_vals and y_vals and len(x_vals) > 1:
             lagrange_poly = LagrangeInterpolator(x_vals, y_vals)
+            self.lagrange_plot_graph(x_vals, y_vals, lagrange_poly)
+
             expression = lagrange_poly.get_polynomial_expression()
             time_taken = lagrange_poly.get_interpolation_time()
 
             self.info_texts[0].value = f"Lagrange Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
             self.info_texts[0].color = "#000000"
-            self.lagrange_plot_graph(x_vals, y_vals, lagrange_poly)
         else:
             self.info_texts[0].value = "Not enough valid data points."
 
         # Newton Interpolation
         if x_vals and y_vals and len(x_vals) > 1:
             newton_poly = NewtonInterpolator(x_vals, y_vals)
+            self.newton_plot_graph(x_vals, y_vals, newton_poly)
+
             expression = newton_poly.get_polynomial_expression()
             time_taken = newton_poly.get_interpolation_time()
 
             self.info_texts[1].value = f"Newton Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
             self.info_texts[1].color = "#000000"
-            self.newton_plot_graph(x_vals, y_vals, newton_poly)
         else:
             self.info_texts[1].value = "Not enough valid data points."
 
         # Barycentric Interpolation
         if x_vals and y_vals and len(x_vals) > 1:
             barycentric_poly = BarycentricInterpolator(x_vals, y_vals)
+            self.barycentric_plot_graph(x_vals, y_vals, barycentric_poly)
+
             expression = barycentric_poly.get_polynomial_expression()
             time_taken = barycentric_poly.get_interpolation_time()
 
             self.info_texts[2].value = f"Barycentric Polynomial:\n{expression}\n\nTime Taken: {time_taken:.10f} seconds"
             self.info_texts[2].color = "#000000"
-            self.barycentric_plot_graph(x_vals, y_vals, barycentric_poly)
         else:
             self.info_texts[2].value = "Not enough valid data points."
 
