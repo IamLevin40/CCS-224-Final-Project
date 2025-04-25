@@ -34,7 +34,8 @@ class InputPanel(ft.Container):
             label="Number of Random Points",
             label_style=ft.TextStyle(color=self.label_color, size=10),
             border_color=self.border_color,
-            keyboard_type=ft.KeyboardType.NUMBER
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=self.validate_random_input
         )
         self.random_button = ft.ElevatedButton("Random", on_click=self.add_random_points)
 
@@ -134,6 +135,21 @@ class InputPanel(ft.Container):
                     pass
         return x_values, y_values
 
+    def validate_random_input(self, e):
+        tf = e.control
+        value = tf.value.strip()
+
+        if not value.isdigit():
+            tf.value = ""
+        else:
+            number = int(value)
+            if number < 1:
+                tf.value = "1"
+            elif number > 10:
+                tf.value = "10"
+
+        tf.update()
+
     def add_random_points(self, e):
         try:
             num_points = int(self.random_input.value.strip())
@@ -144,55 +160,66 @@ class InputPanel(ft.Container):
             self.update()
             return
 
-        if not self.rows:
-            last_x = 0
-            last_y = 0
-        else:
-            last_x, last_y = None, None
-            for row in reversed(self.rows):
-                x_val = row[1].value.strip()
-                y_val = row[2].value.strip()
-                if x_val and y_val:
-                    try:
-                        last_x = int(x_val)
-                        last_y = int(y_val)
-                        break
-                    except ValueError:
-                        continue
+        existing_x_values = set(
+            int(row[1].value.strip()) for row in self.rows if row[1].value.strip()
+        )
 
-            if last_x is None or last_y is None:
-                last_x, last_y = 0, 0
+        reference_x_values = list(existing_x_values)
+        random.shuffle(reference_x_values)
+        used_references = set()
 
-        existing_x_values = [int(row[1].value.strip()) for row in self.rows if row[1].value.strip()]
-        
-        for _ in range(num_points):
-            x_value, y_value = None, None
-            
+        last_x, last_y = 0, 0
+        for row in reversed(self.rows):
+            try:
+                last_x = int(row[1].value.strip())
+                last_y = int(row[2].value.strip())
+                break
+            except (ValueError, AttributeError):
+                continue
+
+        added = 0
+        while added < num_points and len(used_references) < len(reference_x_values) + 1:
             attempts = 0
-            while x_value is None or y_value is None:
-                if attempts > 20:
-                    random_row = random.choice(self.rows)
-                    x_value = int(random_row[1].value.strip())
-                    y_value = int(random_row[2].value.strip())
+            found_unique = False
+
+            while attempts < 10:
+                attempts += 1
+                new_x = last_x + random.randint(-5, 5)
+                new_x = max(min(new_x, 100), -100)
+
+                if new_x not in existing_x_values:
+                    new_y = last_y + random.randint(-5, 5)
+                    new_y = max(min(new_y, 100), -100)
+
+                    self.add_row_with_values(new_x, new_y)
+                    existing_x_values.add(new_x)
+                    last_x, last_y = new_x, new_y
+                    added += 1
+                    found_unique = True
                     break
 
-                new_x_value = last_x + random.randint(-5, 5)
-                new_x_value = max(min(new_x_value, 100), -100)
+            if not found_unique:
+                used_references.add(last_x)
+                remaining_references = [x for x in reference_x_values if x not in used_references]
 
-                if new_x_value not in existing_x_values:
-                    x_value = new_x_value
-                    new_y_value = last_y + random.randint(-5, 5)
-                    new_y_value = max(min(new_y_value, 100), -100)
-
-                    y_value = new_y_value
+                if remaining_references:
+                    last_x = random.choice(remaining_references)
+                    for row in self.rows:
+                        try:
+                            x_val = int(row[1].value.strip())
+                            y_val = int(row[2].value.strip())
+                            if x_val == last_x:
+                                last_y = y_val
+                                break
+                        except ValueError:
+                            continue
                 else:
-                    attempts += 1
+                    break
 
-            self.add_row_with_values(x_value, y_value)
-            existing_x_values.append(x_value)
-
-            last_x = x_value
-            last_y = y_value
+        if added < num_points:
+            self.random_input.error_text = f"Only added {added} unique points (duplicates avoided)."
+        else:
+            self.random_input.error_text = None
 
         self.update()
 
