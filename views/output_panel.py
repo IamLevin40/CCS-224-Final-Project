@@ -126,18 +126,19 @@ class OutputPanel(ft.Container):
             encoded_image = self.graph_lagrange(x_vals, y_vals, lagrange_poly)
             expression = lagrange_poly.get_polynomial_expression()
             time_taken = lagrange_poly.get_interpolation_time()
-            return lagrange_poly, expression, time_taken, encoded_image
-        return None, None, None, None
+            numerical_stability = lagrange_poly.get_numerical_stability()
+            return lagrange_poly, expression, time_taken, encoded_image, numerical_stability
+        return None, None, None, None, None
 
     def update_lagrange_ui(self, results):
-        lagrange_poly, expression, time_taken, encoded_image = results
+        lagrange_poly, expression, time_taken, encoded_image, numerical_stability = results
         if lagrange_poly:
             self.graph_columns[0].controls[1].content.content = Image(
                 src_base64=encoded_image,
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[0].value = f"Time Taken: {time_taken:.10f} seconds\n\nLagrange Polynomial:\n{expression}"
+            self.info_texts[0].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nLagrange Polynomial:\n{expression}"
             self.info_texts[0].color = "#000000"
         else:
             self.info_texts[0].value = "Not enough valid data points."
@@ -148,18 +149,19 @@ class OutputPanel(ft.Container):
             encoded_image = self.graph_newton(x_vals, y_vals, newton_poly)
             expression = newton_poly.get_polynomial_expression()
             time_taken = newton_poly.get_interpolation_time()
-            return newton_poly, expression, time_taken, encoded_image
-        return None, None, None, None
+            numerical_stability = newton_poly.get_numerical_stability()
+            return newton_poly, expression, time_taken, encoded_image, numerical_stability
+        return None, None, None, None, None
 
     def update_newton_ui(self, results):
-        newton_poly, expression, time_taken, encoded_image = results
+        newton_poly, expression, time_taken, encoded_image, numerical_stability = results
         if newton_poly:
             self.graph_columns[1].controls[1].content.content = Image(
                 src_base64=encoded_image,
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[1].value = f"Time Taken: {time_taken:.10f} seconds\n\nNewton Polynomial:\n{expression}"
+            self.info_texts[1].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nNewton Polynomial:\n{expression}"
             self.info_texts[1].color = "#000000"
         else:
             self.info_texts[1].value = "Not enough valid data points."
@@ -170,18 +172,19 @@ class OutputPanel(ft.Container):
             encoded_image = self.graph_barycentric(x_vals, y_vals, barycentric_poly)
             expression = barycentric_poly.get_polynomial_expression()
             time_taken = barycentric_poly.get_interpolation_time()
-            return barycentric_poly, expression, time_taken, encoded_image
-        return None, None, None, None
+            numerical_stability = barycentric_poly.get_numerical_stability()
+            return barycentric_poly, expression, time_taken, encoded_image, numerical_stability
+        return None, None, None, None, None
 
     def update_barycentric_ui(self, results):
-        barycentric_poly, expression, time_taken, encoded_image = results
+        barycentric_poly, expression, time_taken, encoded_image, numerical_stability = results
         if barycentric_poly:
             self.graph_columns[2].controls[1].content.content = Image(
                 src_base64=encoded_image,
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[2].value = f"Time Taken: {time_taken:.10f} seconds\n\nBarycentric Polynomial:\n{expression}"
+            self.info_texts[2].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nBarycentric Polynomial:\n{expression}"
             self.info_texts[2].color = "#000000"
         else:
             self.info_texts[2].value = "Not enough valid data points."
