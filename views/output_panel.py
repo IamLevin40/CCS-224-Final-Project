@@ -20,8 +20,11 @@ class OutputPanel(ft.Container):
         )
 
         self.graph_columns = []
-        self.info_texts = []
         self.algorithms = ["Lagrange Interpolation", "Newton Interpolation", "Barycentric Interpolation"]
+
+        self.expressions = ["", "", ""]
+        self.time_taken = [0.0, 0.0, 0.0]
+        self.numerical_stability = [0.0, 0.0, 0.0]
 
         for i in range(3):
             graph_display = ft.Text("Insert data points\nto create graph.", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
@@ -36,32 +39,12 @@ class OutputPanel(ft.Container):
                 expand=True
             )
 
-            info_text = ft.Text("Information will be included here.", size=14, color="#888888")
-            self.info_texts.append(info_text)
-
-            info_container = ft.Container(
-                content=ft.Column(
-                    [info_text],
-                    scroll=ft.ScrollMode.AUTO,
-                    spacing=10,
-                    expand=True
-                ),
-                padding=10,
-                bgcolor="#ffffff",
-                border_radius=10,
-                expand=True
-            )
-
             column = ft.Column(
                 [
                     title_display,
                     ft.Container(
                         content=graph_container,
-                        expand=7
-                    ),
-                    ft.Container(
-                        content=info_container,
-                        expand=3
+                        expand=True
                     )
                 ],
                 alignment=ft.MainAxisAlignment.START,
@@ -85,10 +68,47 @@ class OutputPanel(ft.Container):
             expand=True
         )
 
+        self.polynomial_info = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
+        self.time_chart = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
+        self.stability_chart = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
+
+        self.bottom_row = ft.Row(
+            [
+                ft.Container(
+                    content=self.polynomial_info,
+                    bgcolor="#ffffff",
+                    border_radius=10,
+                    padding=10,
+                    expand=True,
+                    margin=ft.margin.only(right=10)
+                ),
+                ft.Container(
+                    content=self.time_chart,
+                    bgcolor="#ffffff",
+                    border_radius=10,
+                    padding=10,
+                    expand=True,
+                    margin=ft.margin.only(right=10)
+                ),
+                ft.Container(
+                    content=self.stability_chart,
+                    bgcolor="#ffffff",
+                    border_radius=10,
+                    padding=10,
+                    expand=True,
+                    margin=ft.margin.only(right=10)
+                )
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            vertical_alignment=ft.CrossAxisAlignment.START,
+            expand=True
+        )
+
         self.content = ft.Column(
             [
                 ft.Text("Graphs and Information", size=18, weight=ft.FontWeight.BOLD),
-                self.output_row
+                self.output_row,
+                self.bottom_row
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True
@@ -97,9 +117,11 @@ class OutputPanel(ft.Container):
     def update_output(self, x_vals, y_vals):
         # Set loading states
         for i in range(3):
-            self.info_texts[i].value = "Calculating..."
-            self.info_texts[i].color = "#888888"
-            self.info_texts[i].update()
+            self.graph_columns[i].controls[1].content.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.polynomial_info.controls = [ft.Text("Loading...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)]
+        self.time_chart.controls = [ft.Text("Loading...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)]
+        self.stability_chart.controls = [ft.Text("Loading...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)]
+        self.update()
 
         # Compute and update each algorithm
         self.graph_columns[0].controls[1].content.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
@@ -117,6 +139,10 @@ class OutputPanel(ft.Container):
 
         barycentric_results = self.compute_barycentric(x_vals, y_vals)
         self.update_barycentric_ui(barycentric_results)
+
+        self.update_polynomial_info()
+        self.update_time_chart()
+        self.update_stability_chart()
 
     def compute_lagrange(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
@@ -136,10 +162,11 @@ class OutputPanel(ft.Container):
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[0].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nLagrange Polynomial:\n{expression}"
-            self.info_texts[0].color = "#000000"
+            self.expressions[0] = f"{expression}"
+            self.time_taken[0] = time_taken
+            self.numerical_stability[0] = numerical_stability
         else:
-            self.info_texts[0].value = "Not enough valid data points."
+            self.expressions[0] = "Not enough valid data points."
         
         self.update()
 
@@ -161,10 +188,11 @@ class OutputPanel(ft.Container):
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[1].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nNewton Polynomial:\n{expression}"
-            self.info_texts[1].color = "#000000"
+            self.expressions[1] = f"{expression}"
+            self.time_taken[1] = time_taken
+            self.numerical_stability[1] = numerical_stability
         else:
-            self.info_texts[1].value = "Not enough valid data points."
+            self.expressions[1] = "Not enough valid data points."
         
         self.update()
 
@@ -186,11 +214,77 @@ class OutputPanel(ft.Container):
                 fit=ImageFit.CONTAIN,
                 expand=True
             )
-            self.info_texts[2].value = f"Time Taken: {time_taken:.10f} seconds\nNumerical Stability: {numerical_stability:.10f}\n\nBarycentric Polynomial:\n{expression}"
-            self.info_texts[2].color = "#000000"
+            self.expressions[2] = f"{expression}"
+            self.time_taken[2] = time_taken
+            self.numerical_stability[2] = numerical_stability
         else:
-            self.info_texts[2].value = "Not enough valid data points."
+            self.expressions[2] = "Not enough valid data points."
         
+        self.update()
+
+    def update_time_chart(self):
+        labels = ["Lagrange", "Newton", "Barycentric"]
+
+        fig, ax = plt.subplots(figsize=(4, 3))
+        ax.bar(labels, self.time_taken, color='skyblue')
+        ax.set_ylabel('Time (seconds)')
+        ax.set_title('Interpolation Time Comparison')
+        ax.grid(True, linestyle='--', alpha=0.7)
+
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+        buf.seek(0)
+        time_chart_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+
+        self.time_chart.controls = [
+            ft.Text("Time Taken (seconds)", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
+            ft.Image(
+                src_base64=time_chart_base64,
+                fit=ft.ImageFit.CONTAIN,
+                expand=True
+            )
+        ]
+        self.update()
+
+    def update_stability_chart(self):
+        labels = ["Lagrange", "Newton", "Barycentric"]
+
+        fig, ax = plt.subplots(figsize=(4, 3))
+        ax.bar(labels, self.numerical_stability, color='lightgreen')
+        ax.set_ylabel('Stability Measure')
+        ax.set_title('Numerical Stability Comparison')
+        ax.grid(True, linestyle='--', alpha=0.7)
+
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+        buf.seek(0)
+        stability_chart_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+
+        self.stability_chart.controls = [
+            ft.Text("Numerical Stability", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
+            ft.Image(
+                src_base64=stability_chart_base64,
+                fit=ft.ImageFit.CONTAIN,
+                expand=True
+            )
+        ]
+        self.update()
+
+    def update_polynomial_info(self):
+        lagrange_text = f"Lagrange:\n{self.expressions[0]}" if self.expressions[0] else "L(x): No data."
+        newton_text = f"Newton:\n{self.expressions[1]}" if self.expressions[1] else "N(x): No data."
+        barycentric_text = f"Barycentric:\n{self.expressions[2]}" if self.expressions[2] else "B(x): No data."
+
+        self.polynomial_info.controls = [
+            ft.Text("Polynomial Expressions", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
+            ft.Text(lagrange_text, size=14, color="#000000"),
+            ft.Text(newton_text, size=14, color="#000000"),
+            ft.Text(barycentric_text, size=14, color="#000000")
+        ]
         self.update()
 
     def graph_lagrange(self, x_vals, y_vals, lagrange_polynomial):

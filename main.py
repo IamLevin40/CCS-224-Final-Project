@@ -33,13 +33,6 @@ def main(page: ft.Page):
             
         try:
             output_panel.update_output(x_vals, y_vals)
-        except ZeroDivisionError:
-            page.show_snack_bar(
-                ft.SnackBar(
-                    content=ft.Text("Error: Division by zero occurred. Check your input data."),
-                    bgcolor=ft.colors.ERROR
-                )
-            )
         except Exception as ex:
             page.show_snack_bar(
                 ft.SnackBar(
