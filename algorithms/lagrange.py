@@ -11,7 +11,7 @@ class LagrangeInterpolator:
         self.interpolation_eval_time = 0
 
         start_time = time.perf_counter()
-        self.polynomial_expression = self._compute_polynomial_expression()
+        self.polynomial_expression = self._format_polynomial_expression()
         end_time = time.perf_counter()
         self.construction_time = end_time - start_time
 
@@ -34,7 +34,7 @@ class LagrangeInterpolator:
 
         return result
 
-    def _compute_polynomial_expression(self):
+    def _format_polynomial_expression(self):
         def poly_mul(p1, p2):
             result = defaultdict(Fraction)
             for deg1, coef1 in p1.items():
@@ -57,7 +57,7 @@ class LagrangeInterpolator:
                 final_poly[deg] += term_poly[deg]
 
         x = symbols("x")
-        poly_expr = sum(Rational(coef.numerator, coef.denominator) * x**deg for deg, coef in final_poly.items())
+        poly_expr = sum(Rational(coef.numerator, coef.denominator) * x**deg for deg, coef in sorted(final_poly.items()))
         poly_expr = expand(poly_expr)
 
         def to_unicode_poly_string(expr):

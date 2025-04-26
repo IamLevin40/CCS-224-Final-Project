@@ -23,15 +23,46 @@ class InputPanel(ft.Container):
             expand=True
         )
 
+        self.add_row_button = ft.ElevatedButton(
+            "Add Row",
+            on_click=lambda e: self.add_row(),
+            style=ft.ButtonStyle(
+                bgcolor={"": "#2196F3"},
+                color={"": "#FFFFFF"}
+            )
+        )
+
+        self.clear_all_button = ft.ElevatedButton(
+            "Clear All Rows",
+            on_click=lambda e: self.clear_all_rows(),
+            style=ft.ButtonStyle(
+                bgcolor={"": "#F44336"},
+                color={"": "#FFFFFF"}
+            )
+        )
+
+        self.row_buttons = ft.Row(
+            [self.add_row_button, self.clear_all_button],
+            spacing=10,
+            alignment=ft.MainAxisAlignment.START
+        )
+
         self.content = ft.Column(
-            [ft.Text("Enter Data Points", size=18, weight=ft.FontWeight.BOLD), self.table],
+            [
+                ft.Text("Enter Data Points", size=18, weight=ft.FontWeight.BOLD),
+                self.table,
+                ft.Container(
+                    content=self.row_buttons,
+                    alignment=ft.alignment.center_left
+                )
+            ],
             alignment=ft.MainAxisAlignment.START,
             expand=True
         )
 
         self.random_input = ft.TextField(
             width=120,
-            label="Number of Random Points",
+            label="Number of Random Points (1-10)",
             label_style=ft.TextStyle(color=self.label_color, size=10),
             border_color=self.border_color,
             keyboard_type=ft.KeyboardType.NUMBER,
@@ -42,28 +73,38 @@ class InputPanel(ft.Container):
         self.random_controls = ft.Row([self.random_input, self.random_button])
 
     def did_mount(self):
-        self.add_row()
+        return self.add_row()
 
-    def is_valid_number(self, text):
-        return re.fullmatch(r"-?\d*", text) is not None
+    def validate_float_input(self, e):
+        text_field = e.control
+        value = text_field.value.strip()
+        if not value:
+            return
+        
+        pattern = r'^-?\d*\.?\d*$'
+        if not re.match(pattern, value):
+            cleaned = ''.join(c for c in value if c.isdigit() or c in '.-')
+            parts = cleaned.split('.')
+            if len(parts) > 1:
+                cleaned = f"{parts[0]}.{''.join(parts[1:])}"
+            text_field.value = cleaned
+        
+        text_field.update()
+        self.check_and_add_or_remove_rows()
 
     def create_row(self, index):
-        def input_changed(e):
-            if not self.is_valid_number(e.control.value):
-                e.control.value = re.sub(r"[^\d-]", "", e.control.value)
-                self.update()
-            self.check_and_add_or_remove_rows()
-
         x_input = ft.TextField(
             width=100,
-            on_change=input_changed,
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=self.validate_float_input,
             label=f"x{to_subscript(index + 1)}",
             label_style=ft.TextStyle(color=self.label_color),
             border_color=self.border_color
         )
         y_input = ft.TextField(
             width=100,
-            on_change=input_changed,
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=self.validate_float_input,
             label=f"y{to_subscript(index + 1)}",
             label_style=ft.TextStyle(color=self.label_color),
             border_color=self.border_color
@@ -95,6 +136,12 @@ class InputPanel(ft.Container):
             del self.rows[index]
             del self.table.controls[index]
             self.relabel_rows()
+
+    def clear_all_rows(self):
+        self.rows.clear()
+        self.table.controls.clear()
+        self.add_row()  # Add one empty row
+        self.update()
 
     def relabel_rows(self):
         self.table.controls.clear()
@@ -215,11 +262,6 @@ class InputPanel(ft.Container):
                             continue
                 else:
                     break
-
-        if added < num_points:
-            self.random_input.error_text = f"Only added {added} unique points (duplicates avoided)."
-        else:
-            self.random_input.error_text = None
 
         self.update()
 

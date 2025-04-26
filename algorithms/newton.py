@@ -10,7 +10,7 @@ class NewtonInterpolator:
         self.interpolation_eval_time = 0
 
         start_time = time.perf_counter()
-        self.polynomial_expression = self._compute_polynomial_expression()
+        self.polynomial_expression = self._format_polynomial_expression()
         end_time = time.perf_counter()
         self.construction_time = end_time - start_time
 
@@ -43,7 +43,7 @@ class NewtonInterpolator:
 
         return result
 
-    def _compute_polynomial_expression(self):
+    def _format_polynomial_expression(self):
         x = symbols('x')
         n = len(self.divided_diffs)
         polynomial = 0

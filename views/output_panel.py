@@ -97,28 +97,26 @@ class OutputPanel(ft.Container):
     def update_output(self, x_vals, y_vals):
         # Set loading states
         for i in range(3):
-            self.graph_columns[i].controls[1].content.content = ft.Text(
-                "Computing...",
-                size=16,
-                color="#888888",
-                text_align=ft.TextAlign.CENTER
-            )
             self.info_texts[i].value = "Calculating..."
             self.info_texts[i].color = "#888888"
-            self.graph_columns[i].controls[1].update()
             self.info_texts[i].update()
 
         # Compute and update each algorithm
+        self.graph_columns[0].controls[1].content.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.graph_columns[1].controls[1].content.content = ft.Text("Waiting for the\nfirst algorithm...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.graph_columns[2].controls[1].content.content = ft.Text("Waiting for the\nsecond algorithm...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.update()
         lagrange_results = self.compute_lagrange(x_vals, y_vals)
         self.update_lagrange_ui(lagrange_results)
 
+        self.graph_columns[1].controls[1].content.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.graph_columns[2].controls[1].content.content = ft.Text("Waiting for the\nsecond algorithm...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.update()
         newton_results = self.compute_newton(x_vals, y_vals)
         self.update_newton_ui(newton_results)
 
         barycentric_results = self.compute_barycentric(x_vals, y_vals)
         self.update_barycentric_ui(barycentric_results)
-
-        self.update()
 
     def compute_lagrange(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
@@ -142,6 +140,8 @@ class OutputPanel(ft.Container):
             self.info_texts[0].color = "#000000"
         else:
             self.info_texts[0].value = "Not enough valid data points."
+        
+        self.update()
 
     def compute_newton(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
@@ -165,6 +165,8 @@ class OutputPanel(ft.Container):
             self.info_texts[1].color = "#000000"
         else:
             self.info_texts[1].value = "Not enough valid data points."
+        
+        self.update()
 
     def compute_barycentric(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
@@ -188,6 +190,8 @@ class OutputPanel(ft.Container):
             self.info_texts[2].color = "#000000"
         else:
             self.info_texts[2].value = "Not enough valid data points."
+        
+        self.update()
 
     def graph_lagrange(self, x_vals, y_vals, lagrange_polynomial):
         x_range = np.linspace(min(x_vals), max(x_vals), 300)
