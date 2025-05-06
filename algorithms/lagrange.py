@@ -99,7 +99,7 @@ class LagrangeInterpolator:
 
         return f"L(x) = {to_unicode_poly_string(poly_expr)}"
 
-    def get_numerical_stability(self, perturbation=1e-5, num_samples=100):
+    def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
         perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
         perturbed_interpolator = LagrangeInterpolator(self.x_vals, perturbed_y_vals)
 

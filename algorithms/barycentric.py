@@ -21,15 +21,18 @@ class BarycentricInterpolator:
         for j in range(self.n):
             for k in range(self.n):
                 if j != k:
-                    w[j] /= (self.x_vals[j] - self.x_vals[k])
+                    diff = self.x_vals[j] - self.x_vals[k]
+                    if diff == 0:
+                        raise ZeroDivisionError("Duplicate x-values encountered.")
+                    w[j] /= diff
         return w
 
     def interpolate(self, x):
         start = time.perf_counter()
         
         x = Fraction(x)
-        numerator = Fraction(0)
-        denominator = Fraction(0)
+        numerator = 0.0
+        denominator = 0.0
         for j in range(self.n):
             if x == self.x_vals[j]:
                 return self.y_vals[j]
@@ -40,7 +43,7 @@ class BarycentricInterpolator:
         end = time.perf_counter()
         self.interpolation_eval_time += end - start
 
-        return numerator / denominator if denominator != 0 else 0
+        return numerator / denominator if denominator != 0 else 0.0
 
     def _compute_polynomial_coeffs(self):
         poly = [Fraction(0) for _ in range(self.n)]
@@ -111,7 +114,7 @@ class BarycentricInterpolator:
 
         return f"B(x) = {to_unicode_poly_string(poly_expr)}"
 
-    def get_numerical_stability(self, perturbation=1e-5, num_samples=100):
+    def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
         perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
         perturbed_interpolator = BarycentricInterpolator(self.x_vals, perturbed_y_vals)
 

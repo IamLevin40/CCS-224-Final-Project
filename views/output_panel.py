@@ -288,7 +288,7 @@ class OutputPanel(ft.Container):
         self.update()
 
     def graph_lagrange(self, x_vals, y_vals, lagrange_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 300)
+        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
         y_range = [lagrange_polynomial.interpolate(x) for x in x_range]
 
         fig, ax = plt.subplots()
@@ -310,7 +310,7 @@ class OutputPanel(ft.Container):
         return encoded_image
     
     def graph_newton(self, x_vals, y_vals, newton_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 300)
+        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
         y_range = [newton_polynomial.interpolate(x) for x in x_range]
 
         fig, ax = plt.subplots()
@@ -332,7 +332,7 @@ class OutputPanel(ft.Container):
         return encoded_image
 
     def graph_barycentric(self, x_vals, y_vals, barycentric_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 300)
+        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
         y_range = [barycentric_polynomial.interpolate(x) for x in x_range]
 
         fig, ax = plt.subplots()

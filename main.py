@@ -3,7 +3,7 @@ from views.input_panel import InputPanel, to_subscript
 from views.output_panel import OutputPanel
 
 def main(page: ft.Page):
-    page.title = "Polynomial Finder"
+    page.title = "PlotNomial"
     page.window.maximized = True
     page.padding = 10
 
@@ -34,6 +34,7 @@ def main(page: ft.Page):
         try:
             output_panel.update_output(x_vals, y_vals)
         except Exception as ex:
+            print(str(ex))
             page.show_snack_bar(
                 ft.SnackBar(
                     content=ft.Text(f"Error: {str(ex)}"),

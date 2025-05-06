@@ -95,7 +95,7 @@ class NewtonInterpolator:
 
         return f"N(x) = {to_unicode_poly_string(polynomial)}"
 
-    def get_numerical_stability(self, perturbation=1e-5, num_samples=100):
+    def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
         perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
         perturbed_interpolator = NewtonInterpolator(self.x_vals, perturbed_y_vals)
 
