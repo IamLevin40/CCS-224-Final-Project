@@ -1,5 +1,7 @@
 import base64
 import flet as ft
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from flet import Image, ImageFit

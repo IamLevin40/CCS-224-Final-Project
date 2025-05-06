@@ -91,7 +91,7 @@ class GraphInputPanel(ft.Container):
 
     def create_row(self, index):
         x_input = ft.TextField(
-            width=100,
+            width=80,
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=self.validate_float_input,
             label=f"x{to_digit_subscript(index + 1)}",
@@ -99,7 +99,7 @@ class GraphInputPanel(ft.Container):
             border_color=self.border_color
         )
         y_input = ft.TextField(
-            width=100,
+            width=80,
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=self.validate_float_input,
             label=f"y{to_digit_subscript(index + 1)}",
