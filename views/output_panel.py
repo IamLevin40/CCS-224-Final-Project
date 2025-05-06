@@ -1,15 +1,13 @@
 import base64
 import flet as ft
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import numpy as np
 import io
 from flet import Image, ImageFit
 
 from algorithms.lagrange import LagrangeInterpolator
 from algorithms.newton import NewtonInterpolator
 from algorithms.barycentric import BarycentricInterpolator
+from utils.cartesian_plot import graph_lagrange, graph_newton, graph_barycentric
 
 class OutputPanel(ft.Container):
     def __init__(self):
@@ -137,6 +135,8 @@ class OutputPanel(ft.Container):
         newton_results = self.compute_newton(x_vals, y_vals)
         self.update_newton_ui(newton_results)
 
+        self.graph_columns[2].controls[1].content.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
+        self.update()
         barycentric_results = self.compute_barycentric(x_vals, y_vals)
         self.update_barycentric_ui(barycentric_results)
 
@@ -147,7 +147,7 @@ class OutputPanel(ft.Container):
     def compute_lagrange(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             lagrange_poly = LagrangeInterpolator(x_vals, y_vals)
-            encoded_image = self.graph_lagrange(x_vals, y_vals, lagrange_poly)
+            encoded_image = graph_lagrange(x_vals, y_vals, lagrange_poly)
             expression = lagrange_poly.get_polynomial_expression()
             time_taken = lagrange_poly.get_interpolation_time()
             numerical_stability = lagrange_poly.get_numerical_stability()
@@ -173,7 +173,7 @@ class OutputPanel(ft.Container):
     def compute_newton(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             newton_poly = NewtonInterpolator(x_vals, y_vals)
-            encoded_image = self.graph_newton(x_vals, y_vals, newton_poly)
+            encoded_image = graph_newton(x_vals, y_vals, newton_poly)
             expression = newton_poly.get_polynomial_expression()
             time_taken = newton_poly.get_interpolation_time()
             numerical_stability = newton_poly.get_numerical_stability()
@@ -199,7 +199,7 @@ class OutputPanel(ft.Container):
     def compute_barycentric(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             barycentric_poly = BarycentricInterpolator(x_vals, y_vals)
-            encoded_image = self.graph_barycentric(x_vals, y_vals, barycentric_poly)
+            encoded_image = graph_barycentric(x_vals, y_vals, barycentric_poly)
             expression = barycentric_poly.get_polynomial_expression()
             time_taken = barycentric_poly.get_interpolation_time()
             numerical_stability = barycentric_poly.get_numerical_stability()
@@ -286,69 +286,3 @@ class OutputPanel(ft.Container):
             ft.Text(barycentric_text, size=14, color="#000000")
         ]
         self.update()
-
-    def graph_lagrange(self, x_vals, y_vals, lagrange_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
-        y_range = [lagrange_polynomial.interpolate(x) for x in x_range]
-
-        fig, ax = plt.subplots()
-        ax.plot(x_range, y_range, label="Lagrange Polynomial", color="#2196F3", linewidth=2.5)
-        ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
-        ax.grid(True)
-        ax.set_aspect('equal', adjustable='datalim')
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.legend()
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
-        buf.seek(0)
-
-        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
-        plt.close(fig)
-        
-        return encoded_image
-    
-    def graph_newton(self, x_vals, y_vals, newton_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
-        y_range = [newton_polynomial.interpolate(x) for x in x_range]
-
-        fig, ax = plt.subplots()
-        ax.plot(x_range, y_range, label="Newton Polynomial", color="#2196F3", linewidth=2.5)
-        ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
-        ax.grid(True)
-        ax.set_aspect('equal', adjustable='datalim')
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.legend()
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
-        buf.seek(0)
-
-        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
-        plt.close(fig)
-        
-        return encoded_image
-
-    def graph_barycentric(self, x_vals, y_vals, barycentric_polynomial):
-        x_range = np.linspace(min(x_vals), max(x_vals), 1000)
-        y_range = [barycentric_polynomial.interpolate(x) for x in x_range]
-
-        fig, ax = plt.subplots()
-        ax.plot(x_range, y_range, label="Barycentric Polynomial", color="#2196F3", linewidth=2.5)
-        ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
-        ax.grid(True)
-        ax.set_aspect('equal', adjustable='datalim')
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.legend()
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
-        buf.seek(0)
-
-        encoded_image = base64.b64encode(buf.read()).decode('utf-8')
-        plt.close(fig)
-        
-        return encoded_image

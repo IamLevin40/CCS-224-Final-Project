@@ -1,10 +1,7 @@
 import flet as ft
 import re
 import random
-
-def to_subscript(n: int) -> str:
-    subscript_digits = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
-    return str(n).translate(subscript_digits)
+from utils.string_manipulation import to_digit_subscript
 
 class InputPanel(ft.Container):
     def __init__(self):
@@ -97,7 +94,7 @@ class InputPanel(ft.Container):
             width=100,
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=self.validate_float_input,
-            label=f"x{to_subscript(index + 1)}",
+            label=f"x{to_digit_subscript(index + 1)}",
             label_style=ft.TextStyle(color=self.label_color),
             border_color=self.border_color
         )
@@ -105,7 +102,7 @@ class InputPanel(ft.Container):
             width=100,
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=self.validate_float_input,
-            label=f"y{to_subscript(index + 1)}",
+            label=f"y{to_digit_subscript(index + 1)}",
             label_style=ft.TextStyle(color=self.label_color),
             border_color=self.border_color
         )

@@ -1,6 +1,7 @@
 import time
 from fractions import Fraction
 from sympy import symbols, expand, Rational, Poly
+from utils.string_manipulation import to_digit_superscript
 
 class NewtonInterpolator:
     def __init__(self, x_vals, y_vals):
@@ -58,7 +59,6 @@ class NewtonInterpolator:
         polynomial = expand(polynomial)
 
         def to_unicode_poly_string(poly):
-            superscript_map = str.maketrans("0123456789-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻")
             def frac_to_str(r):
                 if r.denominator == 1:
                     return f"{r.numerator}"
@@ -83,7 +83,7 @@ class NewtonInterpolator:
                 elif power == 1:
                     term = f"{coeff_str}x"
                 else:
-                    term = f"{coeff_str}x{str(power).translate(superscript_map)}"
+                    term = f"{coeff_str}x{to_digit_superscript(power)}"
                 terms.append((sign, term))
 
             if not terms:

@@ -2,6 +2,7 @@ import time
 from collections import defaultdict
 from fractions import Fraction
 from sympy import symbols, expand, Rational, Poly
+from utils.string_manipulation import to_digit_superscript
 
 class LagrangeInterpolator:
     def __init__(self, x_vals, y_vals):
@@ -61,8 +62,6 @@ class LagrangeInterpolator:
         poly_expr = expand(poly_expr)
 
         def to_unicode_poly_string(expr):
-            superscript_map = str.maketrans("0123456789-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻")
-
             def frac_to_str(frac):
                 return f"{frac.numerator}/{frac.denominator}" if frac.denominator != 1 else f"{frac.numerator}"
 
@@ -84,7 +83,7 @@ class LagrangeInterpolator:
                 elif power == 1:
                     term = f"{coeff_str}x" if coeff_str else "x"
                 else:
-                    term = f"{coeff_str}x{str(power).translate(superscript_map)}" if coeff_str else f"x{str(power).translate(superscript_map)}"
+                    term = f"{coeff_str}x{to_digit_superscript(power)}" if coeff_str else f"x{to_digit_superscript(power)}"
 
                 terms.append((sign, term))
 
