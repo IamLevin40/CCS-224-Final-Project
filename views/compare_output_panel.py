@@ -9,7 +9,7 @@ from algorithms.newton import NewtonInterpolator
 from algorithms.barycentric import BarycentricInterpolator
 from utils.cartesian_plot import graph_lagrange, graph_newton, graph_barycentric
 
-class OutputPanel(ft.Container):
+class CompareOutputPanel(ft.Container):
     def __init__(self):
         super().__init__(
             padding=10,

@@ -8,7 +8,7 @@ def graph_lagrange(x_vals, y_vals, lagrange_polynomial):
     y_range = [lagrange_polynomial.interpolate(x) for x in x_range]
 
     fig, ax = plt.subplots()
-    ax.plot(x_range, y_range, label="Lagrange Polynomial", color="#2196F3", linewidth=2.5)
+    ax.plot(x_range, y_range, label="Graph", color="#2196F3", linewidth=2.5)
     ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
     ax.grid(True)
     ax.set_aspect('equal', adjustable='datalim')
@@ -30,7 +30,7 @@ def graph_newton(x_vals, y_vals, newton_polynomial):
     y_range = [newton_polynomial.interpolate(x) for x in x_range]
 
     fig, ax = plt.subplots()
-    ax.plot(x_range, y_range, label="Newton Polynomial", color="#2196F3", linewidth=2.5)
+    ax.plot(x_range, y_range, label="Graph", color="#2196F3", linewidth=2.5)
     ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
     ax.grid(True)
     ax.set_aspect('equal', adjustable='datalim')
@@ -52,7 +52,7 @@ def graph_barycentric(x_vals, y_vals, barycentric_polynomial):
     y_range = [barycentric_polynomial.interpolate(x) for x in x_range]
 
     fig, ax = plt.subplots()
-    ax.plot(x_range, y_range, label="Barycentric Polynomial", color="#2196F3", linewidth=2.5)
+    ax.plot(x_range, y_range, label="Graph", color="#2196F3", linewidth=2.5)
     ax.scatter(x_vals, y_vals, color="#F44336", s=100, zorder=5, label="Data Points")
     ax.grid(True)
     ax.set_aspect('equal', adjustable='datalim')

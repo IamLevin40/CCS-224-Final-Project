@@ -3,7 +3,7 @@ import re
 import random
 from utils.string_manipulation import to_digit_subscript
 
-class InputPanel(ft.Container):
+class CompareInputPanel(ft.Container):
     def __init__(self):
         super().__init__(
             padding=10,
@@ -283,11 +283,18 @@ class InputPanel(ft.Container):
         if not self.rows:
             self.add_row()
 
-    def build_with_button(self, on_calculate):
+    def build_with_button(self, on_calculate, page=None):
         def on_find_button_click(e):
             self.clean_empty_rows()
             on_calculate(e)
         
+        home_button = ft.IconButton(
+            icon=ft.icons.HOME,
+            icon_color="blue",
+            tooltip="Back to Home",
+            on_click=lambda e: page.go("/") if page else None
+        )
+
         find_button = ft.ElevatedButton(
             "Find Polynomial", 
             on_click=on_find_button_click
@@ -297,7 +304,10 @@ class InputPanel(ft.Container):
             [
                 self,
                 ft.Container(content=self.random_controls, padding=10),
-                ft.Container(content=find_button, padding=10)
+                ft.Container(
+                    content=ft.Row([home_button, find_button], spacing=10),
+                    padding=10
+                )
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True
