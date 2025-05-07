@@ -47,13 +47,11 @@ class GraphInputPanel(ft.Container):
         text_field.update()
 
     def create_data_row(self, line_index, point_index, on_delete):
-        x_input = ft.TextField(
-            width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
+        x_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
             border_color=self.border_color, label=f"x{to_digit_subscript(point_index + 1)}",
             label_style=ft.TextStyle(color=self.label_color)
         )
-        y_input = ft.TextField(
-            width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
+        y_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
             border_color=self.border_color, label=f"y{to_digit_subscript(point_index + 1)}",
             label_style=ft.TextStyle(color=self.label_color)
         )
@@ -70,34 +68,18 @@ class GraphInputPanel(ft.Container):
     def add_line(self):
         line_index = len(self.lines)
         color = random.choice(self.COLORS)
+        color_button = ft.Container(width=30, height=30, bgcolor=color, border_radius=15, on_click=lambda e: None)
 
-        color_button = ft.Container(
-            width=30,
-            height=30,
-            bgcolor=color,
-            border_radius=15,
-            on_click=lambda e: None
-        )
-
-        label_input = ft.TextField(
-            width=150, border_color=self.border_color,
+        label_input = ft.TextField(width=150, border_color=self.border_color,
             label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color)
         )
-
-        add_row_button = ft.IconButton(
-            icon=ft.icons.ADD, tooltip="Add Row",
+        add_row_button = ft.IconButton(icon=ft.icons.ADD, tooltip="Add Row",
             on_click=lambda e, idx=line_index: self.add_data_row(idx)
         )
-
-        delete_line_button = ft.IconButton(
-            icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
+        delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
             on_click=lambda e, idx=line_index: self.delete_line(idx)
         )
-
-        header = ft.Row(
-            [color_button, label_input, add_row_button] + ([delete_line_button] if line_index > 0 else []),
-            alignment=ft.MainAxisAlignment.START
-        )
+        header = ft.Row([color_button, label_input, add_row_button] + ([delete_line_button] if line_index > 0 else []), alignment=ft.MainAxisAlignment.START)
 
         data_rows = []
         row_column = ft.Column()
@@ -107,6 +89,7 @@ class GraphInputPanel(ft.Container):
             row_data = self.create_data_row(line_index, idx, on_delete=lambda e, i=idx: self.delete_data_row(line_index, i))
             data_rows.append(row_data)
             row_column.controls.append(row_data[0])
+            self.lines[line_index] = self.lines[line_index][:3] + (data_rows, row_column) + self.lines[line_index][5:]
             self.update()
 
         def delete_row_fn(i):
@@ -173,12 +156,7 @@ class GraphInputPanel(ft.Container):
                     continue
 
             if len(x_vals) >= 2:
-                results.append({
-                    "x_vals": x_vals,
-                    "y_vals": y_vals,
-                    "label": label_input.value.strip(),
-                    "color": color
-                })
+                results.append({"x_vals": x_vals, "y_vals": y_vals, "label": label_input.value.strip(), "color": color})
         return results
 
     def build_with_button(self, on_calculate, page=None):
