@@ -1,7 +1,7 @@
 import flet as ft
 from views.compare_input_panel import CompareInputPanel
 from views.compare_output_panel import CompareOutputPanel
-from utils.validation import validate_data
+from utils.validation import compare_validate_data
 
 def build_compare_page(page: ft.Page):
     input_panel = CompareInputPanel()
@@ -9,7 +9,7 @@ def build_compare_page(page: ft.Page):
 
     def on_calculate(e):
         x_vals, y_vals = input_panel.get_data()
-        is_valid, error_message = validate_data(x_vals, y_vals)
+        is_valid, error_message = compare_validate_data(x_vals, y_vals)
         if not is_valid:
             page.open(ft.SnackBar(content=ft.Text(error_message), bgcolor=ft.colors.ERROR))
             return

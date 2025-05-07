@@ -1,7 +1,7 @@
 import flet as ft
 from views.graph_input_panel import GraphInputPanel
 from views.graph_output_panel import GraphOutputPanel
-from utils.validation import validate_data
+from utils.validation import graph_validate_data
 
 def build_graph_page(page: ft.Page):
     input_panel = GraphInputPanel()
@@ -9,7 +9,7 @@ def build_graph_page(page: ft.Page):
 
     def on_calculate(e):
         all_lines_data = input_panel.get_all_lines_data()
-        is_valid, error_message = validate_data(all_lines_data)
+        is_valid, error_message = graph_validate_data(all_lines_data)
         if not is_valid:
             page.open(ft.SnackBar(content=ft.Text(error_message), bgcolor=ft.colors.ERROR))
             return
