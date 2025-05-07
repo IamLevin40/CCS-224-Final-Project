@@ -7,30 +7,17 @@ from utils.dynamic_cartesian_plot import generate_multi_interpolation_plot
 
 class GraphOutputPanel(ft.Container):
     def __init__(self):
-        super().__init__(
-            padding=10,
-            alignment=ft.alignment.top_left,
-            expand=True
-        )
+        super().__init__(padding=10, alignment=ft.alignment.top_left, expand=True)
 
         self.graph_display = ft.Text("Insert data points\nto create graph.", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
-
-        self.graph_container = ft.Container(
-            content=self.graph_display,
-            bgcolor="#ffffff",
-            alignment=ft.alignment.center,
-            border_radius=10,
-            padding=10,
-            expand=True
-        )
+        self.graph_container = ft.Container(content=self.graph_display, bgcolor="#ffffff", alignment=ft.alignment.center, border_radius=10, padding=10, expand=True)
 
         self.content = ft.Column(
             [
                 ft.Text("Graph", size=18, weight=ft.FontWeight.BOLD),
                 self.graph_container
             ],
-            alignment=ft.MainAxisAlignment.START,
-            expand=True
+            alignment=ft.MainAxisAlignment.START, expand=True
         )
 
     def update_output(self, datasets):
@@ -63,7 +50,7 @@ class GraphOutputPanel(ft.Container):
                 "y_vals": y_vals,
                 "interpolator": interpolator,
                 "label": data.get("label", f"Curve {i+1}"),
-                "color": data.get("color")  # optional
+                "color": data.get("color")
             })
 
         if not interpolated_data:
@@ -85,10 +72,7 @@ class GraphOutputPanel(ft.Container):
 
     def update_graph_ui(self, html):
         if html:
-            self.graph_container.content = ft.WebView(
-                expand=True,
-                url=html
-            )
+            self.graph_container.content = ft.WebView(expand=True, url=html)
         else:
             self.graph_container.content = ft.Text("Not enough data points to generate a graph.", color="red")
 
