@@ -49,7 +49,7 @@ class GraphOutputPanel(ft.Container):
                 "x_vals": x_vals,
                 "y_vals": y_vals,
                 "interpolator": interpolator,
-                "label": data.get("label", f"Curve {i+1}"),
+                "label": data.get("label", f"Line {i+1}"),
                 "color": data.get("color")
             })
 

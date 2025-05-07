@@ -12,7 +12,7 @@ def generate_interpolation_trace(x_range, y_range, name="Interpolation", color="
         line=dict(color=color, width=2)
     )
 
-def generate_data_points_trace(x_vals, y_vals, name="Data Points", color="red"):
+def generate_data_points_trace(x_vals, y_vals, name="Data Points", color="black"):
     return go.Scatter(
         x=x_vals,
         y=y_vals,

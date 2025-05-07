@@ -8,27 +8,20 @@ def build_graph_page(page: ft.Page):
     output_panel = GraphOutputPanel()
 
     def on_calculate(e):
-        x_vals, y_vals = input_panel.get_data()
-        is_valid, error_message = validate_data(x_vals, y_vals)
+        all_lines_data = input_panel.get_all_lines_data()
+        is_valid, error_message = validate_data(all_lines_data)
         if not is_valid:
             page.open(ft.SnackBar(content=ft.Text(error_message), bgcolor=ft.colors.ERROR))
             return
 
         try:
-            output_panel.update_output([
-                {
-                    "x_vals": x_vals,
-                    "y_vals": y_vals,
-                    "label": "Line",
-                    "color": "blue"
-                }
-            ])
+            output_panel.update_output(all_lines_data)
         except Exception as ex:
             page.open(ft.SnackBar(content=ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR))
             print(f"Error: {str(ex)}")
 
     input_container = ft.Container(content=input_panel.build_with_button(on_calculate, page=page), expand=1, padding=10)
-    output_container = ft.Container(content=output_panel, expand=4, padding=10)
+    output_container = ft.Container(content=output_panel, expand=3, padding=10)
 
     return ft.Row(
         controls=[
