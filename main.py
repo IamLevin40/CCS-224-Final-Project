@@ -3,6 +3,9 @@ from views.home_page import HomePage
 from views.compare_page import build_compare_page
 from views.graph_page import build_graph_page
 
+from utils.server import run_server_in_background
+run_server_in_background()
+
 def main(page: ft.Page):
     page.title = "PlotNomial"
     page.window.maximized = True

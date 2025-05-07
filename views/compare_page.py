@@ -18,6 +18,7 @@ def build_compare_page(page: ft.Page):
             output_panel.update_output(x_vals, y_vals)
         except Exception as ex:
             page.open(ft.SnackBar(content=ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR))
+            print(f"Error: {str(ex)}")
 
     input_container = ft.Container(
         content=input_panel.build_with_button(on_calculate, page=page),

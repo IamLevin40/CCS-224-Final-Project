@@ -9,7 +9,7 @@ from flet import Image, ImageFit
 from algorithms.lagrange import LagrangeInterpolator
 from algorithms.newton import NewtonInterpolator
 from algorithms.barycentric import BarycentricInterpolator
-from utils.cartesian_plot import graph_lagrange, graph_newton, graph_barycentric
+from utils.static_cartesian_plot import graph_lagrange, graph_newton, graph_barycentric
 
 class CompareOutputPanel(ft.Container):
     def __init__(self):
@@ -32,7 +32,7 @@ class CompareOutputPanel(ft.Container):
 
             graph_container = ft.Container(
                 content=graph_display,
-                bgcolor="#f0f0f0",
+                bgcolor="#ffffff",
                 alignment=ft.alignment.center,
                 border_radius=10,
                 padding=10,
