@@ -1,37 +1,35 @@
+import plotly
 import plotly.graph_objs as go
 import numpy as np
-import plotly
 import json
 
-def graph_barycentric(x_vals, y_vals, barycentric_polynomial):
-    x_vals_float = [float(x) for x in x_vals]
-    y_vals_float = [float(y) for y in y_vals]
-
-    x_min, x_max = min(x_vals_float), max(x_vals_float)
-    x_range = np.linspace(x_min, x_max, 1000).tolist()
-    y_range = [float(barycentric_polynomial.interpolate(x)) for x in x_range]
-
-    trace_curve = go.Scatter(
+def generate_interpolation_trace(x_range, y_range, name="Interpolation", color="blue"):
+    return go.Scatter(
         x=x_range,
         y=y_range,
         mode="lines",
-        name="Interpolation",
-        line=dict(color="blue", width=2)
+        name=name,
+        line=dict(color=color, width=2)
     )
 
-    trace_points = go.Scatter(
-        x=x_vals_float,
-        y=y_vals_float,
+def generate_data_points_trace(x_vals, y_vals, name="Data Points", color="red"):
+    return go.Scatter(
+        x=x_vals,
+        y=y_vals,
         mode="markers",
-        name="Data Points",
-        marker=dict(color="red", size=8)
+        name=name,
+        marker=dict(color=color, size=8)
     )
 
-    zeroline_color="#A193B3"
-    major_grid_color="#CAB9E1"
-    minor_grid_color="#E7DDF8"
+def create_layout(x_vals, y_vals):
+    x_min, x_max = min(x_vals), max(x_vals)
+    y_min, y_max = min(y_vals), max(y_vals)
 
-    layout = go.Layout(
+    zeroline_color = "#A193B3"
+    major_grid_color = "#CAB9E1"
+    minor_grid_color = "#E7DDF8"
+
+    return go.Layout(
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
             scaleanchor="y",
@@ -61,12 +59,12 @@ def graph_barycentric(x_vals, y_vals, barycentric_polynomial):
             gridcolor=major_grid_color,
             gridwidth=1,
             tickmode="array",
-            tickvals=np.arange(min(y_vals_float), max(y_vals_float) + 1, 1),
+            tickvals=np.arange(y_min, y_max + 1, 1),
             minor=dict(
                 showgrid=True,
                 gridcolor=minor_grid_color,
                 gridwidth=0.5,
-                tickvals=np.arange(min(y_vals_float) + 0.5, max(y_vals_float) + 1, 0.5)
+                tickvals=np.arange(y_min + 0.5, y_max + 1, 0.5)
             )
         ),
         plot_bgcolor="white",
@@ -76,10 +74,9 @@ def graph_barycentric(x_vals, y_vals, barycentric_polynomial):
         showlegend=False
     )
 
-    fig = go.Figure(data=[trace_curve, trace_points], layout=layout)
+def generate_plot_html(fig):
     fig_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
-    html_content = f"""
+    return f"""
     <html>
     <head>
         <meta charset="UTF-8">
@@ -114,4 +111,35 @@ def graph_barycentric(x_vals, y_vals, barycentric_polynomial):
     </html>
     """
 
-    return html_content
+def generate_multi_interpolation_plot(data_sets):
+    """
+    data_sets: list of dicts with keys:
+        - x_vals: list of x data
+        - y_vals: list of y data
+        - interpolator: object with `.interpolate(x)` method
+        - label: (optional) curve name
+        - color: (optional) line color
+    """
+    all_traces = []
+    all_x_vals, all_y_vals = [], []
+
+    for i, data in enumerate(data_sets):
+        x_vals = [float(x) for x in data["x_vals"]]
+        y_vals = [float(y) for y in data["y_vals"]]
+        interpolator = data["interpolator"]
+        label = data.get("label", f"Interpolation {i+1}")
+        color = data.get("color", f"hsl({i * 50}, 70%, 50%)")
+
+        x_range = np.linspace(min(x_vals), max(x_vals), 1000).tolist()
+        y_range = [float(interpolator.interpolate(x)) for x in x_range]
+
+        trace_curve = generate_interpolation_trace(x_range, y_range, name=label, color=color)
+        trace_points = generate_data_points_trace(x_vals, y_vals)
+
+        all_traces.extend([trace_curve, trace_points])
+        all_x_vals.extend(x_vals)
+        all_y_vals.extend(y_vals)
+
+    layout = create_layout(all_x_vals, all_y_vals)
+    fig = go.Figure(data=all_traces, layout=layout)
+    return generate_plot_html(fig)

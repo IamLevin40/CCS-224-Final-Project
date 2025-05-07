@@ -15,7 +15,14 @@ def build_graph_page(page: ft.Page):
             return
 
         try:
-            output_panel.update_output(x_vals, y_vals)
+            output_panel.update_output([
+                {
+                    "x_vals": x_vals,
+                    "y_vals": y_vals,
+                    "label": "Line",
+                    "color": "blue"
+                }
+            ])
         except Exception as ex:
             page.open(ft.SnackBar(content=ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR))
             print(f"Error: {str(ex)}")
