@@ -35,7 +35,6 @@ class CompareOutputPanel(ft.Container):
                 bgcolor="#ffffff",
                 alignment=ft.alignment.center,
                 border_radius=10,
-                padding=10,
                 expand=True
             )
 
@@ -59,8 +58,7 @@ class CompareOutputPanel(ft.Container):
             [
                 ft.Container(
                     content=column,
-                    expand=True,
-                    margin=ft.margin.only(right=10)
+                    expand=True
                 ) for column in self.graph_columns
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -80,7 +78,7 @@ class CompareOutputPanel(ft.Container):
                     border_radius=10,
                     padding=10,
                     expand=True,
-                    margin=ft.margin.only(right=10)
+                    margin=ft.margin.only(left=10, right=10)
                 ),
                 ft.Container(
                     content=self.time_chart,
@@ -88,7 +86,7 @@ class CompareOutputPanel(ft.Container):
                     border_radius=10,
                     padding=10,
                     expand=True,
-                    margin=ft.margin.only(right=10)
+                    margin=ft.margin.only(left=10, right=10)
                 ),
                 ft.Container(
                     content=self.stability_chart,
@@ -96,7 +94,7 @@ class CompareOutputPanel(ft.Container):
                     border_radius=10,
                     padding=10,
                     expand=True,
-                    margin=ft.margin.only(right=10)
+                    margin=ft.margin.only(left=10, right=10)
                 )
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
