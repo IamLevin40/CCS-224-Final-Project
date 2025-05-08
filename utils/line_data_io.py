@@ -16,13 +16,9 @@ def save_lines_web(lines):
                     points.append({"x": x, "y": y})
                 except ValueError:
                     continue
-        data.append({
-            "label": label_input.value,
-            "color": color,
-            "points": points
-        })
+        data.append({"label": label_input.value, "color": color, "points": points})
 
-    json_str = json.dumps(data, indent=2)
+    json_str = json.dumps(data)
     encoded_text = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
     text_name = "line_data.txt"
 
