@@ -1,9 +1,7 @@
-import matplotlib
+import matplotlib, base64, io
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import base64
-import io
 
 def graph_lagrange(x_vals, y_vals, lagrange_polynomial):
     x_range = np.linspace(min(x_vals), max(x_vals), 1000)

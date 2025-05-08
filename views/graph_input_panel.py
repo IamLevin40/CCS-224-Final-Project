@@ -1,6 +1,5 @@
+import re, random
 import flet as ft
-import re
-import random
 
 from utils.string_manipulation import to_digit_subscript
 from utils.line_data_io import save_lines_web, load_lines_code
@@ -31,14 +30,10 @@ class GraphInputPanel(ft.Container):
                 ft.Container(content=ft.Row([self.add_line_button, self.save_button], spacing=10), alignment=ft.alignment.center_left),
                 ft.Row([self.code_field, self.generate_button], alignment=ft.MainAxisAlignment.START)
             ],
-            alignment=ft.MainAxisAlignment.START,
-            expand=True
+            alignment=ft.MainAxisAlignment.START, expand=True
         )
         
-        self.content = ft.Stack([
-            self.main_content,
-            self.color_picker_popup
-        ])
+        self.content = ft.Stack([self.main_content, self.color_picker_popup])
 
     def validate_float_input(self, e):
         text_field = e.control
@@ -81,10 +76,8 @@ class GraphInputPanel(ft.Container):
         color_button.on_click = lambda e, idx=line_index, btn=color_button: self.show_color_picker(
             btn, idx, top_offset=30, left_offset=70)
 
-        label_input = ft.TextField(
-            width=150, value=label or "", border_color=self.border_color,
-            label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color)
-        )
+        label_input = ft.TextField(width=150, value=label or "", border_color=self.border_color,
+            label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color))
         add_row_button = ft.IconButton(icon=ft.icons.ADD, icon_color="blue", tooltip="Add Row",
             on_click=lambda e, idx=line_index: self.add_data_row(idx))
         delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
@@ -204,20 +197,16 @@ class GraphInputPanel(ft.Container):
                 g = int(255 * (i / 18))
                 b = int(255 * (j / 19))
                 color = f"#{r:02x}{g:02x}{b:02x}"
-                row.append(ft.Container(
-                    width=box_size, height=box_size, bgcolor=color, border_radius=box_radius,
-                    on_click=lambda e, c=color: select_color(c)
-                ))
+                row.append(ft.Container(width=box_size, height=box_size, bgcolor=color, border_radius=box_radius,
+                    on_click=lambda e, c=color: select_color(c)))
             color_grid_rows.append(ft.Row(row, spacing=spacing))
 
         grayscale_row = []
         for i in range(20):
             shade = int(255 * (1 - i / 19))
             gray = f"#{shade:02x}{shade:02x}{shade:02x}"
-            grayscale_row.append(ft.Container(
-                width=box_size, height=box_size, bgcolor=gray, border_radius=box_radius,
-                on_click=lambda e, c=gray: select_color(c)
-            ))
+            grayscale_row.append(ft.Container(width=box_size, height=box_size, bgcolor=gray, border_radius=box_radius,
+                on_click=lambda e, c=gray: select_color(c)))
 
         header = ft.Row(
             controls=[
@@ -256,8 +245,7 @@ class GraphInputPanel(ft.Container):
                 self,
                 ft.Container(content=ft.Row([home_button, find_button], spacing=10))
             ],
-            alignment=ft.MainAxisAlignment.START,
-            expand=True
+            alignment=ft.MainAxisAlignment.START, expand=True
         )
 
     def did_mount(self):

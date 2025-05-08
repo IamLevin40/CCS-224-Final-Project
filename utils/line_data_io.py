@@ -1,8 +1,4 @@
-import base64
-import json
-import os
-import re
-import webbrowser
+import base64, json, os, re, webbrowser
 import flet as ft
 
 def save_lines_web(lines):
@@ -80,7 +76,6 @@ def load_lines_code(panel):
             if not isinstance(color, str) or not hex_color_pattern.fullmatch(color):
                 raise ValueError(f"Invalid color format in line {i + 1}: '{color}' must be a hex string like '#RRGGBB'.")
 
-            # Validate points
             points = line_data.get("points")
             if not isinstance(points, list):
                 raise ValueError(f"'points' in line {i + 1} must be a list.")

@@ -1,5 +1,5 @@
-import flet as ft
 import os
+import flet as ft
 
 from utils.server import SERVE_DIR
 from algorithms.barycentric import BarycentricInterpolator

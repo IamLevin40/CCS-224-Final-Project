@@ -1,9 +1,7 @@
-import base64
-import flet as ft
-import matplotlib
+import base64, io, matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import io
+import flet as ft
 from flet import Image, ImageFit
 
 from algorithms.lagrange import LagrangeInterpolator

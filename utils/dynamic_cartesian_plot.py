@@ -1,7 +1,6 @@
-import plotly
+import plotly, json
 import plotly.graph_objs as go
 import numpy as np
-import json
 
 def generate_interpolation_trace(x_range, y_range, name="Interpolation", color="#0000FF"):
     return go.Scatter(x=x_range, y=y_range, mode="lines", name=name, line=dict(color=color, width=2))

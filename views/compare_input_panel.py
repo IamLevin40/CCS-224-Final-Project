@@ -1,6 +1,5 @@
+import re, random
 import flet as ft
-import re
-import random
 from utils.string_manipulation import to_digit_subscript
 
 class CompareInputPanel(ft.Container):
@@ -13,28 +12,25 @@ class CompareInputPanel(ft.Container):
         self.table = ft.Column(scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, expand=True)
 
         self.add_row_button = ft.ElevatedButton("Add Row", on_click=lambda e: self.add_row(),
-            style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"})
-        )
+            style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
         self.clear_all_button = ft.ElevatedButton("Clear All Rows", on_click=lambda e: self.clear_all_rows(),
-            style=ft.ButtonStyle(bgcolor={"": "#F44336"}, color={"": "#FFFFFF"})
-        )
+            style=ft.ButtonStyle(bgcolor={"": "#F44336"}, color={"": "#FFFFFF"}))
         self.row_buttons = ft.Row([self.add_row_button, self.clear_all_button], spacing=10, alignment=ft.MainAxisAlignment.START)
+
+        self.random_input = ft.TextField(width=120, border_color=self.border_color, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_random_input,
+            label="Number of Random Points (1-10)", label_style=ft.TextStyle(color=self.label_color, size=10))
+        self.random_button = ft.ElevatedButton("Random", on_click=self.add_random_points)
+        self.random_controls = ft.Row([self.random_input, self.random_button])
 
         self.content = ft.Column(
             [
                 ft.Text("Enter Data Points", size=18, weight=ft.FontWeight.BOLD),
                 self.table,
+                ft.Container(content=self.random_controls),
                 ft.Container(content=self.row_buttons, alignment=ft.alignment.center_left)
             ],
             alignment=ft.MainAxisAlignment.START, expand=True
         )
-
-        self.random_input = ft.TextField(width=120, border_color=self.border_color, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_random_input,
-            label="Number of Random Points (1-10)", label_style=ft.TextStyle(color=self.label_color, size=10)
-        )
-        self.random_button = ft.ElevatedButton("Random", on_click=self.add_random_points)
-
-        self.random_controls = ft.Row([self.random_input, self.random_button])
 
     def did_mount(self):
         return self.add_row()
@@ -58,11 +54,9 @@ class CompareInputPanel(ft.Container):
 
     def create_row(self, index):
         x_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input, border_color=self.border_color,
-            label=f"x{to_digit_subscript(index + 1)}", label_style=ft.TextStyle(color=self.label_color)
-        )
+            label=f"x{to_digit_subscript(index + 1)}", label_style=ft.TextStyle(color=self.label_color))
         y_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input, border_color=self.border_color,
-            label=f"y{to_digit_subscript(index + 1)}", label_style=ft.TextStyle(color=self.label_color)
-        )
+            label=f"y{to_digit_subscript(index + 1)}", label_style=ft.TextStyle(color=self.label_color))
 
         controls = [x_input, y_input]
 
@@ -156,9 +150,7 @@ class CompareInputPanel(ft.Container):
             self.update()
             return
 
-        existing_x_values = set(
-            int(row[1].value.strip()) for row in self.rows if row[1].value.strip()
-        )
+        existing_x_values = set(int(row[1].value.strip()) for row in self.rows if row[1].value.strip())
 
         reference_x_values = list(existing_x_values)
         random.shuffle(reference_x_values)
@@ -246,8 +238,7 @@ class CompareInputPanel(ft.Container):
         return ft.Column(
             [
                 self,
-                ft.Container(content=self.random_controls, padding=10),
-                ft.Container(content=ft.Row([home_button, find_button], spacing=10), padding=10)
+                ft.Container(content=ft.Row([home_button, find_button], spacing=10))
             ],
             alignment=ft.MainAxisAlignment.START, expand=True
         )
