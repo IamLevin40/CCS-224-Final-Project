@@ -3,10 +3,10 @@ import re
 import random
 
 from utils.string_manipulation import to_digit_subscript
-from utils.line_data_io import save_lines_web, load_lines_web
+from utils.line_data_io import save_lines_web, load_lines_code
 
 class GraphInputPanel(ft.Container):
-    COLORS = ["red", "orange", "yellow", "green", "blue", "purple"]
+    COLORS = ["#EC2525", "#EC6725", "#ECDF25", "#25EC28", "#257FEC", "#A925EC"]
 
     def __init__(self):
         super().__init__(padding=10, alignment=ft.alignment.top_center, expand=True)
@@ -16,10 +16,10 @@ class GraphInputPanel(ft.Container):
         self.lines = []
         self.line_column = ft.Column(scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, expand=True)
         self.add_line_button = ft.ElevatedButton("Add Line", on_click=lambda e: self.add_line(), style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
-        
-        self.load_picker = ft.FilePicker(on_result=lambda e: load_lines_web(self, e))
-        self.save_button = ft.ElevatedButton("Save", icon=ft.icons.SAVE, on_click=lambda e: save_lines_web(self.lines))
-        self.load_button = ft.ElevatedButton("Load", icon=ft.icons.FOLDER_OPEN, on_click=lambda e: self.load_picker.pick_files(allowed_extensions=["txt"]))
+        self.save_button = ft.ElevatedButton("Save", icon=ft.icons.SAVE, icon_color="white", on_click=lambda e: save_lines_web(self.lines), style=ft.ButtonStyle(bgcolor={"": "#18A045"}, color={"": "#FFFFFF"}))
+
+        self.code_field = ft.TextField(label="Code here", multiline=True, expand=True, min_lines=1, max_lines=1, border_color=self.border_color, label_style=ft.TextStyle(color=self.label_color))
+        self.generate_button = ft.ElevatedButton("Code", icon=ft.icons.BOLT, icon_color="white", on_click=lambda e: load_lines_code(self), style=ft.ButtonStyle(bgcolor={"": "#A01823"}, color={"": "#FFFFFF"}))
 
         self.color_picker_popup = ft.Container(visible=False, bgcolor="white", border_radius=10, padding=10, shadow=ft.BoxShadow(blur_radius=10, color="black12"),
             content=ft.Column([], scroll=ft.ScrollMode.AUTO), width=220, height=235, alignment=ft.alignment.center)
@@ -28,7 +28,8 @@ class GraphInputPanel(ft.Container):
             [
                 ft.Text("Enter Lines with Data Points", size=18, weight=ft.FontWeight.BOLD),
                 self.line_column,
-                ft.Container(content=ft.Row([self.add_line_button, self.save_button, self.load_button], spacing=10), alignment=ft.alignment.center_left)
+                ft.Container(content=ft.Row([self.add_line_button, self.save_button], spacing=10), alignment=ft.alignment.center_left),
+                ft.Row([self.code_field, self.generate_button], alignment=ft.MainAxisAlignment.START)
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True
@@ -84,7 +85,7 @@ class GraphInputPanel(ft.Container):
             width=150, value=label or "", border_color=self.border_color,
             label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color)
         )
-        add_row_button = ft.IconButton(icon=ft.icons.ADD, tooltip="Add Row",
+        add_row_button = ft.IconButton(icon=ft.icons.ADD, icon_color="blue", tooltip="Add Row",
             on_click=lambda e, idx=line_index: self.add_data_row(idx))
         delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
             on_click=lambda e, idx=line_index: self.delete_line(idx))
@@ -253,7 +254,7 @@ class GraphInputPanel(ft.Container):
         return ft.Column(
             [
                 self,
-                ft.Container(content=ft.Row([home_button, find_button], spacing=10), padding=10)
+                ft.Container(content=ft.Row([home_button, find_button], spacing=10))
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True

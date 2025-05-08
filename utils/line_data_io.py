@@ -53,22 +53,16 @@ def save_lines_web(lines):
         f.write(html_content)
     webbrowser.open(f"file://{os.path.abspath(filename)}")
 
-def load_lines_web(panel, e):
+def load_lines_code(panel):
     try:
-        if not e.files:
-            return
-
-        file = e.files[0]
-        content = file.read().decode("utf-8")
-        data = json.loads(content)
+        code = panel.code_field.value
+        data = json.loads(code)
 
         if not isinstance(data, list):
             raise ValueError("Invalid data format: root must be a list.")
 
         panel.lines.clear()
         panel.line_column.controls.clear()
-        print(f"Loaded {len(data)} lines from file.")
-        print(f"Data: {data}")
 
         for i, line_data in enumerate(data):
             label = line_data.get("label", f"Line {i + 1}")
@@ -86,7 +80,7 @@ def load_lines_web(panel, e):
                     isinstance(point["x"], (int, float)) and
                     isinstance(point["y"], (int, float))
                 ):
-                    valid_points.append({"x": point["x"], "y": point["y"]})
+                    valid_points.append((point["x"], point["y"]))
                 else:
                     raise ValueError(f"Invalid point in line {i + 1}: {point}")
 
@@ -97,3 +91,4 @@ def load_lines_web(panel, e):
 
     except Exception as ex:
         panel.page.open(ft.SnackBar(content=ft.Text(f"Error loading file: {ex}"), bgcolor=ft.colors.ERROR))
+        print(f"Error: {ex}")
