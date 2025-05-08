@@ -11,10 +11,14 @@ class GraphOutputPanel(ft.Container):
 
         self.graph_display = ft.Text("Insert data points\nto create graph.", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
         self.graph_container = ft.Container(content=self.graph_display, bgcolor="#ffffff", alignment=ft.alignment.center, border_radius=10, padding=10, expand=True)
+        self.info_line = ft.Text("No Information Found", size=12, color="#dddddd")
 
         self.content = ft.Column(
             [
-                ft.Text("Graph", size=18, weight=ft.FontWeight.BOLD),
+                ft.Row([
+                    ft.Text("Graph", size=18, weight=ft.FontWeight.BOLD),
+                    ft.Container(content=self.info_line, expand=True, alignment=ft.alignment.center_right),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 self.graph_container
             ],
             alignment=ft.MainAxisAlignment.START, expand=True
@@ -31,7 +35,8 @@ class GraphOutputPanel(ft.Container):
         self.graph_container.content = ft.Text("Computing...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
         self.update()
 
-        html_url = self.compute_interpolations(datasets)
+        html_url, total_eval_time, max_stability = self.compute_interpolations(datasets)
+        self.update_info_line(total_eval_time, max_stability)
         self.update_graph_ui(html_url)
 
     def compute_interpolations(self, datasets):
@@ -56,7 +61,7 @@ class GraphOutputPanel(ft.Container):
         if not interpolated_data:
             return None
 
-        html = generate_multi_interpolation_plot(interpolated_data)
+        html, total_eval_time, max_stability = generate_multi_interpolation_plot(interpolated_data)
 
         output_dir = SERVE_DIR
         os.makedirs(output_dir, exist_ok=True)
@@ -68,7 +73,22 @@ class GraphOutputPanel(ft.Container):
             f.write(html)
             print(f"Graph saved to {filepath}")
 
-        return f"http://localhost:8000/{filename}"
+        return f"http://localhost:8000/{filename}", total_eval_time, max_stability
+    
+    def update_info_line(self, total_eval_time, max_stability):
+        if total_eval_time is None or max_stability is None:
+            self.info_line.value = "No Information Found"
+        else:
+            if total_eval_time < 1:
+                eval_display = f"{total_eval_time * 1000:.2f}ms"
+            else:
+                eval_display = f"{total_eval_time:.5f}s"
+
+            stability_display = f"{max_stability:.7f}"
+
+            self.info_line.value = f"⏱ {eval_display} | 📈 Stability: {stability_display}"
+
+        self.update()
 
     def update_graph_ui(self, html):
         if html:

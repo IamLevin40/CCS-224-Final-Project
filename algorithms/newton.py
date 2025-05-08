@@ -124,3 +124,6 @@ class NewtonInterpolator:
 
     def get_interpolation_time(self):
         return self.construction_time + self.interpolation_eval_time
+
+    def get_evaluation_only_time(self):
+        return self.interpolation_eval_time

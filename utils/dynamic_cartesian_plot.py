@@ -4,22 +4,10 @@ import numpy as np
 import json
 
 def generate_interpolation_trace(x_range, y_range, name="Interpolation", color="blue"):
-    return go.Scatter(
-        x=x_range,
-        y=y_range,
-        mode="lines",
-        name=name,
-        line=dict(color=color, width=2)
-    )
+    return go.Scatter(x=x_range, y=y_range, mode="lines", name=name, line=dict(color=color, width=2))
 
-def generate_data_points_trace(x_vals, y_vals, name="Data Points", color="black"):
-    return go.Scatter(
-        x=x_vals,
-        y=y_vals,
-        mode="markers",
-        name=name,
-        marker=dict(color=color, size=8)
-    )
+def generate_data_points_trace(x_vals, y_vals, name="Data Points", color="#222222"):
+    return go.Scatter(x=x_vals, y=y_vals, mode="markers", name=name, marker=dict(color=color, size=6))
 
 def create_layout(x_vals, y_vals):
     x_min, x_max = min(x_vals), max(x_vals)
@@ -122,6 +110,8 @@ def generate_multi_interpolation_plot(data_sets):
     """
     all_traces = []
     all_x_vals, all_y_vals = [], []
+    total_eval_time = 0.0
+    max_stability = None
 
     for i, data in enumerate(data_sets):
         x_vals = [float(x) for x in data["x_vals"]]
@@ -139,7 +129,15 @@ def generate_multi_interpolation_plot(data_sets):
         all_traces.extend([trace_curve, trace_points])
         all_x_vals.extend(x_vals)
         all_y_vals.extend(y_vals)
+        
+        try:
+            total_eval_time += interpolator.get_evaluation_only_time()
+            stability = interpolator.get_numerical_stability()
+            if max_stability is None or stability > max_stability:
+                max_stability = stability
+        except Exception as e:
+            print(f"Error retrieving time/stability: {e}")
 
     layout = create_layout(all_x_vals, all_y_vals)
     fig = go.Figure(data=all_traces, layout=layout)
-    return generate_plot_html(fig)
+    return generate_plot_html(fig), total_eval_time, max_stability
