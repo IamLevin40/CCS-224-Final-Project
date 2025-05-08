@@ -166,7 +166,7 @@ class CompareOutputPanel(ft.Container):
         labels = ["Lagrange", "Newton", "Barycentric"]
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        ax.bar(labels, self.time_taken, color='skyblue')
+        ax.bar(labels, self.time_taken, color='#2196F3')
         ax.set_ylabel('Time (seconds)')
         ax.set_title('Interpolation Time Comparison')
         ax.grid(True, linestyle='--', alpha=0.7)
@@ -188,7 +188,7 @@ class CompareOutputPanel(ft.Container):
         labels = ["Lagrange", "Newton", "Barycentric"]
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        ax.bar(labels, self.numerical_stability, color='lightgreen')
+        ax.bar(labels, self.numerical_stability, color='#18A045')
         ax.set_ylabel('Stability Measure')
         ax.set_title('Numerical Stability Comparison')
         ax.grid(True, linestyle='--', alpha=0.7)

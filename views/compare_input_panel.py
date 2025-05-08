@@ -11,15 +11,15 @@ class CompareInputPanel(ft.Container):
         self.rows = []
         self.table = ft.Column(scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, expand=True)
 
-        self.add_row_button = ft.ElevatedButton("Add Row", on_click=lambda e: self.add_row(),
+        self.add_row_button = ft.ElevatedButton("Add Row", icon=ft.icons.ADD_CIRCLE, icon_color="#FFFFFF", on_click=lambda e: self.add_row(),
             style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
-        self.clear_all_button = ft.ElevatedButton("Clear All Rows", on_click=lambda e: self.clear_all_rows(),
-            style=ft.ButtonStyle(bgcolor={"": "#F44336"}, color={"": "#FFFFFF"}))
+        self.clear_all_button = ft.ElevatedButton("Clear All", icon=ft.icons.CLEAR_ALL, icon_color="#FFFFFF", on_click=lambda e: self.clear_all_rows(),
+            style=ft.ButtonStyle(bgcolor={"": "#A01823"}, color={"": "#FFFFFF"}))
         self.row_buttons = ft.Row([self.add_row_button, self.clear_all_button], spacing=10, alignment=ft.MainAxisAlignment.START)
 
         self.random_input = ft.TextField(width=120, border_color=self.border_color, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_random_input,
             label="Number of Random Points (1-10)", label_style=ft.TextStyle(color=self.label_color, size=10))
-        self.random_button = ft.ElevatedButton("Random", on_click=self.add_random_points)
+        self.random_button = ft.ElevatedButton("Random", icon=ft.icons.CASINO, icon_color="#FFFFFF", on_click=self.add_random_points, style=ft.ButtonStyle(bgcolor={"": "#18A045"}, color={"": "#FFFFFF"}))
         self.random_controls = ft.Row([self.random_input, self.random_button])
 
         self.content = ft.Column(
@@ -61,7 +61,7 @@ class CompareInputPanel(ft.Container):
         controls = [x_input, y_input]
 
         if index > 0:
-            delete_btn = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Row", on_click=lambda e, idx=index: self.delete_row(idx))
+            delete_btn = ft.IconButton(icon=ft.icons.REMOVE_CIRCLE, icon_color="red", tooltip="Delete Row", on_click=lambda e, idx=index: self.delete_row(idx))
             controls.append(delete_btn)
 
         row = ft.Row(controls, alignment="start")
@@ -232,8 +232,9 @@ class CompareInputPanel(ft.Container):
             self.clean_empty_rows()
             on_calculate(e)
         
-        home_button = ft.IconButton(icon=ft.icons.HOME, icon_color="blue", tooltip="Back to Home", on_click=lambda e: page.go("/") if page else None)
-        find_button = ft.ElevatedButton("Find Polynomial", on_click=on_find_button_click)
+        home_button = ft.IconButton(icon=ft.icons.HOME_ROUNDED, icon_color="#2196F3", tooltip="Back to Home", on_click=lambda e: page.go("/") if page else None)
+        find_button = ft.ElevatedButton("Find Polynomial", icon=ft.icons.FUNCTIONS, icon_color="#222222", on_click=on_find_button_click, 
+            style=ft.ButtonStyle(bgcolor={"": "#FFFFFF"}, color={"": "#222222"}, text_style=ft.TextStyle(weight=ft.FontWeight.BOLD)))
 
         return ft.Column(
             [

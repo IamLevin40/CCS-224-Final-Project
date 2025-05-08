@@ -14,13 +14,13 @@ class GraphInputPanel(ft.Container):
 
         self.lines = []
         self.line_column = ft.Column(scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, expand=True)
-        self.add_line_button = ft.ElevatedButton("Add Line", on_click=lambda e: self.add_line(), style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
-        self.save_button = ft.ElevatedButton("Save", icon=ft.icons.SAVE, icon_color="white", on_click=lambda e: save_lines_web(self.lines), style=ft.ButtonStyle(bgcolor={"": "#18A045"}, color={"": "#FFFFFF"}))
+        self.add_line_button = ft.ElevatedButton("Add Line", icon=ft.icons.LINE_WEIGHT_ROUNDED, icon_color="#FFFFFF", on_click=lambda e: self.add_line(), style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
+        self.save_button = ft.ElevatedButton("Save", icon=ft.icons.SAVE, icon_color="#FFFFFF", on_click=lambda e: save_lines_web(self.lines), style=ft.ButtonStyle(bgcolor={"": "#18A045"}, color={"": "#FFFFFF"}))
 
         self.code_field = ft.TextField(label="Code here", multiline=True, expand=True, min_lines=1, max_lines=1, border_color=self.border_color, label_style=ft.TextStyle(color=self.label_color))
-        self.generate_button = ft.ElevatedButton("Code", icon=ft.icons.BOLT, icon_color="white", on_click=lambda e: load_lines_code(self), style=ft.ButtonStyle(bgcolor={"": "#A01823"}, color={"": "#FFFFFF"}))
+        self.generate_button = ft.ElevatedButton("Code", icon=ft.icons.BOLT, icon_color="#FFFFFF", on_click=lambda e: load_lines_code(self), style=ft.ButtonStyle(bgcolor={"": "#A01823"}, color={"": "#FFFFFF"}))
 
-        self.color_picker_popup = ft.Container(visible=False, bgcolor="white", border_radius=10, padding=10, shadow=ft.BoxShadow(blur_radius=10, color="black12"),
+        self.color_picker_popup = ft.Container(visible=False, bgcolor="#FFFFFF", border_radius=10, padding=10, shadow=ft.BoxShadow(blur_radius=10, color="black12"),
             content=ft.Column([], scroll=ft.ScrollMode.AUTO), width=220, height=235, alignment=ft.alignment.center)
 
         self.main_content = ft.Column(
@@ -62,7 +62,7 @@ class GraphInputPanel(ft.Container):
         controls = [x_input, y_input]
 
         if point_index > 0:
-            delete_btn = ft.IconButton(icon=ft.icons.REMOVE, icon_color="red", tooltip="Delete Row", on_click=on_delete)
+            delete_btn = ft.IconButton(icon=ft.icons.REMOVE_CIRCLE, icon_color="red", tooltip="Delete Row", on_click=on_delete)
             controls.append(delete_btn)
 
         row = ft.Row(controls, alignment="start")
@@ -78,9 +78,9 @@ class GraphInputPanel(ft.Container):
 
         label_input = ft.TextField(width=150, value=label or "", border_color=self.border_color,
             label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color))
-        add_row_button = ft.IconButton(icon=ft.icons.ADD, icon_color="blue", tooltip="Add Row",
+        add_row_button = ft.IconButton(icon=ft.icons.ADD_CIRCLE, icon_color="blue", tooltip="Add Row",
             on_click=lambda e, idx=line_index: self.add_data_row(idx))
-        delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
+        delete_line_button = ft.IconButton(icon=ft.icons.DELETE_ROUNDED, icon_color="red", tooltip="Delete Line",
             on_click=lambda e, idx=line_index: self.delete_line(idx))
 
         header = ft.Row([label_input, color_button, add_row_button] + ([delete_line_button] if line_index > 0 else []),
@@ -237,8 +237,9 @@ class GraphInputPanel(ft.Container):
         def on_graph_lines_click(e):
             on_calculate(e)
 
-        home_button = ft.IconButton(icon=ft.icons.HOME, icon_color="blue", tooltip="Back to Home", on_click=lambda e: page.go("/") if page else None)
-        find_button = ft.ElevatedButton("Graph Lines", on_click=on_graph_lines_click)
+        home_button = ft.IconButton(icon=ft.icons.HOME_ROUNDED, icon_color="#2196F3", tooltip="Back to Home", on_click=lambda e: page.go("/") if page else None)
+        find_button = ft.ElevatedButton("Graph Lines", icon=ft.icons.SHOW_CHART, icon_color="#222222", on_click=on_graph_lines_click, 
+            style=ft.ButtonStyle(bgcolor={"": "#FFFFFF"}, color={"": "#222222"}, text_style=ft.TextStyle(weight=ft.FontWeight.BOLD)))
 
         return ft.Column(
             [
