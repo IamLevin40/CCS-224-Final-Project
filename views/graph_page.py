@@ -6,6 +6,9 @@ from utils.validation import graph_validate_data
 def build_graph_page(page: ft.Page):
     input_panel = GraphInputPanel()
     output_panel = GraphOutputPanel()
+    page.overlay.extend([
+        input_panel.load_picker
+    ])
 
     def on_calculate(e):
         all_lines_data = input_panel.get_all_lines_data()

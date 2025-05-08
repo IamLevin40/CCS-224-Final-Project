@@ -1,7 +1,9 @@
 import flet as ft
 import re
 import random
+
 from utils.string_manipulation import to_digit_subscript
+from utils.line_data_io import save_lines_web, load_lines_web
 
 class GraphInputPanel(ft.Container):
     COLORS = ["red", "orange", "yellow", "green", "blue", "purple"]
@@ -13,12 +15,11 @@ class GraphInputPanel(ft.Container):
 
         self.lines = []
         self.line_column = ft.Column(scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, expand=True)
-
-        self.add_line_button = ft.ElevatedButton(
-            "Add Line",
-            on_click=lambda e: self.add_line(),
-            style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"})
-        )
+        self.add_line_button = ft.ElevatedButton("Add Line", on_click=lambda e: self.add_line(), style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"}))
+        
+        self.load_picker = ft.FilePicker(on_result=lambda e: load_lines_web(self, e))
+        self.save_button = ft.ElevatedButton("Save", icon=ft.icons.SAVE, on_click=lambda e: save_lines_web(self.lines))
+        self.load_button = ft.ElevatedButton("Load", icon=ft.icons.FOLDER_OPEN, on_click=lambda e: self.load_picker.pick_files(allowed_extensions=["txt"]))
 
         self.color_picker_popup = ft.Container(visible=False, bgcolor="white", border_radius=10, padding=10, shadow=ft.BoxShadow(blur_radius=10, color="black12"),
             content=ft.Column([], scroll=ft.ScrollMode.AUTO), width=220, height=235, alignment=ft.alignment.center)
@@ -27,7 +28,7 @@ class GraphInputPanel(ft.Container):
             [
                 ft.Text("Enter Lines with Data Points", size=18, weight=ft.FontWeight.BOLD),
                 self.line_column,
-                ft.Container(content=self.add_line_button, alignment=ft.alignment.center_left)
+                ft.Container(content=ft.Row([self.add_line_button, self.save_button, self.load_button], spacing=10), alignment=ft.alignment.center_left)
             ],
             alignment=ft.MainAxisAlignment.START,
             expand=True
@@ -57,12 +58,10 @@ class GraphInputPanel(ft.Container):
     def create_data_row(self, line_index, point_index, on_delete):
         x_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
             border_color=self.border_color, label=f"x{to_digit_subscript(point_index + 1)}",
-            label_style=ft.TextStyle(color=self.label_color)
-        )
+            label_style=ft.TextStyle(color=self.label_color))
         y_input = ft.TextField(width=80, keyboard_type=ft.KeyboardType.NUMBER, on_change=self.validate_float_input,
             border_color=self.border_color, label=f"y{to_digit_subscript(point_index + 1)}",
-            label_style=ft.TextStyle(color=self.label_color)
-        )
+            label_style=ft.TextStyle(color=self.label_color))
 
         controls = [x_input, y_input]
 
@@ -73,23 +72,25 @@ class GraphInputPanel(ft.Container):
         row = ft.Row(controls, alignment="start")
         return (row, x_input, y_input)
 
-    def add_line(self):
+    def add_line(self, label=None, color=None, points=None):
         line_index = len(self.lines)
-        color = random.choice(self.COLORS)
+        color = color or random.choice(self.COLORS)
+
         color_button = ft.Button(width=30, height=30, bgcolor=color, text=" ", tooltip="Select Color")
         color_button.on_click = lambda e, idx=line_index, btn=color_button: self.show_color_picker(
             btn, idx, top_offset=30, left_offset=70)
 
-        label_input = ft.TextField(width=150, border_color=self.border_color,
+        label_input = ft.TextField(
+            width=150, value=label or "", border_color=self.border_color,
             label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color)
         )
         add_row_button = ft.IconButton(icon=ft.icons.ADD, tooltip="Add Row",
-            on_click=lambda e, idx=line_index: self.add_data_row(idx)
-        )
+            on_click=lambda e, idx=line_index: self.add_data_row(idx))
         delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
-            on_click=lambda e, idx=line_index: self.delete_line(idx)
-        )
-        header = ft.Row([label_input, color_button, add_row_button] + ([delete_line_button] if line_index > 0 else []), alignment=ft.MainAxisAlignment.START)
+            on_click=lambda e, idx=line_index: self.delete_line(idx))
+
+        header = ft.Row([label_input, color_button, add_row_button] + ([delete_line_button] if line_index > 0 else []),
+            alignment=ft.MainAxisAlignment.START)
 
         data_rows = []
         row_column = ft.Column()
@@ -110,9 +111,19 @@ class GraphInputPanel(ft.Container):
                 self.update()
 
         self.lines.append((header, label_input, color, data_rows, row_column, add_row_fn, delete_row_fn, delete_line_button))
-        add_row_fn()
         container = ft.Column([header, row_column])
         self.line_column.controls.append(container)
+
+        if points:
+            for idx, (x, y) in enumerate(points):
+                row_data = self.create_data_row(line_index, idx, on_delete=lambda e, i=idx: self.delete_data_row(line_index, i))
+                row_data[1].value = str(x)
+                row_data[2].value = str(y)
+                data_rows.append(row_data)
+                row_column.controls.append(row_data[0])
+        else:
+            add_row_fn()
+
         self.update()
 
     def add_data_row(self, line_index):
