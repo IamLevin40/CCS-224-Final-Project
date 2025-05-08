@@ -20,7 +20,10 @@ class GraphInputPanel(ft.Container):
             style=ft.ButtonStyle(bgcolor={"": "#2196F3"}, color={"": "#FFFFFF"})
         )
 
-        self.content = ft.Column(
+        self.color_picker_popup = ft.Container(visible=False, bgcolor="white", border_radius=10, padding=10, shadow=ft.BoxShadow(blur_radius=10, color="black12"),
+            content=ft.Column([], scroll=ft.ScrollMode.AUTO), width=220, height=235, alignment=ft.alignment.center)
+
+        self.main_content = ft.Column(
             [
                 ft.Text("Enter Lines with Data Points", size=18, weight=ft.FontWeight.BOLD),
                 self.line_column,
@@ -29,6 +32,11 @@ class GraphInputPanel(ft.Container):
             alignment=ft.MainAxisAlignment.START,
             expand=True
         )
+        
+        self.content = ft.Stack([
+            self.main_content,
+            self.color_picker_popup
+        ])
 
     def validate_float_input(self, e):
         text_field = e.control
@@ -68,7 +76,9 @@ class GraphInputPanel(ft.Container):
     def add_line(self):
         line_index = len(self.lines)
         color = random.choice(self.COLORS)
-        color_button = ft.Container(width=30, height=30, bgcolor=color, border_radius=15, on_click=lambda e: None)
+        color_button = ft.Button(width=30, height=30, bgcolor=color, text=" ", tooltip="Select Color")
+        color_button.on_click = lambda e, idx=line_index, btn=color_button: self.show_color_picker(
+            btn, idx, top_offset=30, left_offset=70)
 
         label_input = ft.TextField(width=150, border_color=self.border_color,
             label=f"Line {line_index + 1}", label_style=ft.TextStyle(color=self.label_color)
@@ -79,7 +89,7 @@ class GraphInputPanel(ft.Container):
         delete_line_button = ft.IconButton(icon=ft.icons.DELETE, icon_color="red", tooltip="Delete Line",
             on_click=lambda e, idx=line_index: self.delete_line(idx)
         )
-        header = ft.Row([color_button, label_input, add_row_button] + ([delete_line_button] if line_index > 0 else []), alignment=ft.MainAxisAlignment.START)
+        header = ft.Row([label_input, color_button, add_row_button] + ([delete_line_button] if line_index > 0 else []), alignment=ft.MainAxisAlignment.START)
 
         data_rows = []
         row_column = ft.Column()
@@ -158,6 +168,69 @@ class GraphInputPanel(ft.Container):
             if len(x_vals) >= 2:
                 results.append({"x_vals": x_vals, "y_vals": y_vals, "label": label_input.value.strip(), "color": color})
         return results
+
+    def show_color_picker(self, color_button, line_index, top_offset=0, left_offset=0):
+        def select_color(color):
+            color_button.bgcolor = color
+            self.lines[line_index] = self.lines[line_index][:2] + (color,) + self.lines[line_index][3:]
+            self.color_picker_popup.visible = False
+            self.update()
+
+        def close_picker(e):
+            self.color_picker_popup.visible = False
+            self.update()
+
+        spacing = 0
+        box_size = 10
+        box_radius = 0
+
+        color_grid_rows = []
+        for i in range(19):
+            row = []
+            for j in range(20):
+                r = int(255 * (1 - j / 19))
+                g = int(255 * (i / 18))
+                b = int(255 * (j / 19))
+                color = f"#{r:02x}{g:02x}{b:02x}"
+                row.append(ft.Container(
+                    width=box_size, height=box_size, bgcolor=color, border_radius=box_radius,
+                    on_click=lambda e, c=color: select_color(c)
+                ))
+            color_grid_rows.append(ft.Row(row, spacing=spacing))
+
+        grayscale_row = []
+        for i in range(20):
+            shade = int(255 * (1 - i / 19))
+            gray = f"#{shade:02x}{shade:02x}{shade:02x}"
+            grayscale_row.append(ft.Container(
+                width=box_size, height=box_size, bgcolor=gray, border_radius=box_radius,
+                on_click=lambda e, c=gray: select_color(c)
+            ))
+
+        header = ft.Row(
+            controls=[
+                ft.Text(f"Line {line_index + 1}", size=10, weight=ft.FontWeight.BOLD, color="black"),
+                ft.Container(expand=True),
+                ft.Button(text="-", tooltip="Close", on_click=close_picker, bgcolor="red", width=10, height=10)
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER
+        )
+
+        full_content = ft.Column(
+            controls=[
+                header,
+                ft.Column(color_grid_rows, spacing=spacing),
+                ft.Row(grayscale_row, spacing=spacing)
+            ],
+            spacing=spacing
+        )
+
+        self.color_picker_popup.left = left_offset
+        self.color_picker_popup.top = top_offset
+        self.color_picker_popup.content = full_content
+        self.color_picker_popup.visible = True
+        self.update()
 
     def build_with_button(self, on_calculate, page=None):
         def on_graph_lines_click(e):
