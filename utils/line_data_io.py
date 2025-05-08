@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 import webbrowser
 import flet as ft
 
@@ -55,30 +56,52 @@ def load_lines_code(panel):
         data = json.loads(code)
 
         if not isinstance(data, list):
-            raise ValueError("Invalid data format: root must be a list.")
+            raise ValueError("Invalid format: root JSON element must be a list.")
 
         panel.lines.clear()
         panel.line_column.controls.clear()
 
-        for i, line_data in enumerate(data):
-            label = line_data.get("label", f"Line {i + 1}")
-            color = line_data.get("color", "#0000FF")
+        hex_color_pattern = re.compile(r"^#(?:[0-9a-fA-F]{6})$")
 
-            points = line_data.get("points", [])
+        for i, line_data in enumerate(data):
+            if not isinstance(line_data, dict):
+                raise ValueError(f"Line {i + 1} must be a JSON object.")
+
+            allowed_keys = {"label", "color", "points"}
+            extra_keys = set(line_data.keys()) - allowed_keys
+            if extra_keys:
+                raise ValueError(f"Line {i + 1} contains unexpected keys: {', '.join(extra_keys)}")
+
+            label = line_data.get("label", f"Line {i + 1}")
+            if not isinstance(label, str):
+                raise ValueError(f"Invalid type for 'label' in line {i + 1}: must be a string.")
+
+            color = line_data.get("color", "#0000FF")
+            if not isinstance(color, str) or not hex_color_pattern.fullmatch(color):
+                raise ValueError(f"Invalid color format in line {i + 1}: '{color}' must be a hex string like '#RRGGBB'.")
+
+            # Validate points
+            points = line_data.get("points")
             if not isinstance(points, list):
-                raise ValueError(f"Invalid points format in line {i + 1}")
+                raise ValueError(f"'points' in line {i + 1} must be a list.")
 
             valid_points = []
-            for point in points:
-                if (
-                    isinstance(point, dict) and
-                    "x" in point and "y" in point and
-                    isinstance(point["x"], (int, float)) and
-                    isinstance(point["y"], (int, float))
-                ):
-                    valid_points.append((point["x"], point["y"]))
-                else:
-                    raise ValueError(f"Invalid point in line {i + 1}: {point}")
+            for j, point in enumerate(points):
+                if not isinstance(point, dict):
+                    raise ValueError(f"Point {j + 1} in line {i + 1} must be a dictionary.")
+
+                if "x" not in point or "y" not in point:
+                    raise ValueError(f"Point {j + 1} in line {i + 1} must contain 'x' and 'y' keys.")
+
+                x, y = point.get("x"), point.get("y")
+                if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+                    raise ValueError(f"Invalid coordinate types in point {j + 1} of line {i + 1}: 'x' and 'y' must be numbers.")
+
+                extra_point_keys = set(point.keys()) - {"x", "y"}
+                if extra_point_keys:
+                    raise ValueError(f"Point {j + 1} in line {i + 1} has unexpected keys: {', '.join(extra_point_keys)}")
+
+                valid_points.append((x, y))
 
             print(f"Loaded line {i + 1}: {label}, color: {color}, points: {valid_points}")
             panel.add_line(label=label, color=color, points=valid_points)
@@ -86,5 +109,6 @@ def load_lines_code(panel):
         panel.update()
 
     except Exception as ex:
-        panel.page.open(ft.SnackBar(content=ft.Text(f"Error loading file: {ex}"), bgcolor=ft.colors.ERROR))
-        print(f"Error: {ex}")
+        error_message = f"Error loading code: {ex}"
+        panel.page.open(ft.SnackBar(content=ft.Text(error_message), bgcolor=ft.colors.ERROR))
+        print(error_message)
