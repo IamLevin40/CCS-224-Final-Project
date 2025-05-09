@@ -1,28 +1,23 @@
 import time
-from fractions import Fraction
-from sympy import symbols, expand, Rational, Poly
+from sympy import symbols, expand, Poly
 from utils.string_manipulation import to_digit_superscript
 
 class BarycentricInterpolator:
     def __init__(self, x_vals, y_vals):
-        self.x_vals = [Fraction(x) for x in x_vals]
-        self.y_vals = [Fraction(y) for y in y_vals]
-        self.n = len(x_vals)
+        self.x_vals = list(map(float, x_vals))
+        self.y_vals = list(map(float, y_vals))
+        self.n = len(self.x_vals)
         self.weights = self._compute_weights()
         self.interpolation_eval_time = 0
-
-        start_time = time.perf_counter()
-        self.coeffs = self._compute_polynomial_coeffs()
-        self.polynomial_expression = self._format_polynomial_expression()
-        end_time = time.perf_counter()
-        self.construction_time = end_time - start_time
+        self.construction_time = 0
 
     def _compute_weights(self):
-        w = [Fraction(1) for _ in range(self.n)]
+        w = [1.0] * self.n
         for j in range(self.n):
+            xj = self.x_vals[j]
             for k in range(self.n):
                 if j != k:
-                    diff = self.x_vals[j] - self.x_vals[k]
+                    diff = xj - self.x_vals[k]
                     if diff == 0:
                         raise ZeroDivisionError("Duplicate x-values encountered.")
                     w[j] /= diff
@@ -30,13 +25,15 @@ class BarycentricInterpolator:
 
     def interpolate(self, x):
         start = time.perf_counter()
-        
-        x = Fraction(x)
-        numerator = 0.0
-        denominator = 0.0
+        x = float(x)
+
         for j in range(self.n):
             if x == self.x_vals[j]:
                 return self.y_vals[j]
+
+        numerator = 0.0
+        denominator = 0.0
+        for j in range(self.n):
             temp = self.weights[j] / (x - self.x_vals[j])
             numerator += temp * self.y_vals[j]
             denominator += temp
@@ -46,18 +43,18 @@ class BarycentricInterpolator:
 
         return numerator / denominator if denominator != 0 else 0.0
 
-    def _compute_polynomial_coeffs(self):
-        poly = [Fraction(0) for _ in range(self.n)]
+    def _compute_polynomial_coefficients(self):
+        poly = [0.0] * self.n
 
         for j in range(self.n):
-            term_poly = [Fraction(1)]
+            term_poly = [1.0]
             for m in range(self.n):
                 if m != j:
-                    new_term = [Fraction(0)] * (len(term_poly) + 1)
+                    next_term = [0.0] * (len(term_poly) + 1)
                     for i in range(len(term_poly)):
-                        new_term[i] -= term_poly[i] * self.x_vals[m]
-                        new_term[i + 1] += term_poly[i]
-                    term_poly = new_term
+                        next_term[i] -= term_poly[i] * self.x_vals[m]
+                        next_term[i + 1] += term_poly[i]
+                    term_poly = next_term
 
             weight_y = self.weights[j] * self.y_vals[j]
             for i in range(len(term_poly)):
@@ -65,17 +62,12 @@ class BarycentricInterpolator:
 
         return poly
 
-    def _format_polynomial_expression(self):
+    def _format_polynomial_expression(self, coefficients):
         x = symbols("x")
-        degree = len(self.coeffs) - 1
-        poly_expr = sum(Rational(coeff.numerator, coeff.denominator) * x**i for i, coeff in enumerate(self.coeffs))
+        poly_expr = sum(coeff * x**i for i, coeff in enumerate(coefficients))
         poly_expr = expand(poly_expr)
 
         def to_unicode_poly_string(poly):
-            def frac_to_str(r):
-                r = Rational(r).limit_denominator()
-                return f"{r.numerator}" if r.denominator == 1 else f"{r.numerator}/{r.denominator}"
-
             terms = []
             poly = Poly(poly, x)
             coeffs = poly.all_coeffs()
@@ -83,15 +75,11 @@ class BarycentricInterpolator:
 
             for i, coeff in enumerate(coeffs):
                 power = deg - i
-                frac = Rational(coeff).limit_denominator()
-                if frac == 0:
+                if coeff == 0:
                     continue
-                sign = "-" if frac < 0 else "+"
-                abs_frac = abs(frac)
-                coeff_str = frac_to_str(abs_frac)
-
-                if abs_frac == 1 and power != 0:
-                    coeff_str = ""
+                sign = "-" if coeff < 0 else "+"
+                abs_coeff = abs(coeff)
+                coeff_str = f"{abs_coeff:.4f}".rstrip("0").rstrip(".") if abs_coeff != 1 or power == 0 else ""
 
                 if power == 0:
                     term = f"{coeff_str}"
@@ -114,19 +102,19 @@ class BarycentricInterpolator:
         return f"B(x) = {to_unicode_poly_string(poly_expr)}"
 
     def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
-        perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
+        perturbed_y_vals = [y + perturbation for y in self.y_vals]
         perturbed_interpolator = BarycentricInterpolator(self.x_vals, perturbed_y_vals)
 
-        min_x = float(min(self.x_vals))
-        max_x = float(max(self.x_vals))
-        if len(self.x_vals) == 1:
+        min_x = min(self.x_vals)
+        max_x = max(self.x_vals)
+        if self.n == 1:
             return 0.0
 
         max_relative_error = 0.0
         for i in range(num_samples):
             x_sample = min_x + i * (max_x - min_x) / (num_samples - 1)
-            orig_val = float(self.interpolate(x_sample))
-            perturbed_val = float(perturbed_interpolator.interpolate(x_sample))
+            orig_val = self.interpolate(x_sample)
+            perturbed_val = perturbed_interpolator.interpolate(x_sample)
 
             if orig_val != 0:
                 rel_error = abs((perturbed_val - orig_val) / orig_val)
@@ -138,7 +126,13 @@ class BarycentricInterpolator:
         return max_relative_error
 
     def get_polynomial_expression(self):
-        return self.polynomial_expression
+        start_time = time.perf_counter()
+        coefficients = self._compute_polynomial_coefficients()
+        polynomial_expression = self._format_polynomial_expression(coefficients)
+        end_time = time.perf_counter()
+        self.construction_time = end_time - start_time
+
+        return polynomial_expression
 
     def get_interpolation_time(self):
         return self.construction_time + self.interpolation_eval_time

@@ -1,23 +1,17 @@
 import time
 from collections import defaultdict
-from fractions import Fraction
-from sympy import symbols, expand, Rational, Poly
+from sympy import symbols, expand, Poly
 from utils.string_manipulation import to_digit_superscript
 
 class LagrangeInterpolator:
     def __init__(self, x_vals, y_vals):
-        self.x_vals = [Fraction(x) for x in x_vals]
-        self.y_vals = [Fraction(y) for y in y_vals]
+        self.x_vals = [float(x) for x in x_vals]
+        self.y_vals = [float(y) for y in y_vals]
         self.n = len(x_vals)
         self.interpolation_eval_time = 0
 
-        start_time = time.perf_counter()
-        self.polynomial_expression = self._format_polynomial_expression()
-        end_time = time.perf_counter()
-        self.construction_time = end_time - start_time
-
     def _L(self, k, x):
-        total = 1
+        total = 1.0
         for i in range(self.n):
             if i != k:
                 total *= (x - self.x_vals[i]) / (self.x_vals[k] - self.x_vals[i])
@@ -25,11 +19,11 @@ class LagrangeInterpolator:
 
     def interpolate(self, x):
         start = time.perf_counter()
-        
-        result = 0
+
+        result = 0.0
         for k in range(self.n):
             result += self.y_vals[k] * self._L(k, x)
-        
+
         end = time.perf_counter()
         self.interpolation_eval_time += end - start
 
@@ -37,20 +31,20 @@ class LagrangeInterpolator:
 
     def _format_polynomial_expression(self):
         def poly_mul(p1, p2):
-            result = defaultdict(Fraction)
+            result = defaultdict(float)
             for deg1, coef1 in p1.items():
                 for deg2, coef2 in p2.items():
                     result[deg1 + deg2] += coef1 * coef2
             return result
 
-        final_poly = defaultdict(Fraction)
+        final_poly = defaultdict(float)
 
         for k in range(self.n):
-            term_poly = {0: Fraction(1)}
-            denom = Fraction(1)
+            term_poly = {0: 1.0}
+            denom = 1.0
             for i in range(self.n):
                 if i != k:
-                    term_poly = poly_mul(term_poly, {1: Fraction(1), 0: -self.x_vals[i]})
+                    term_poly = poly_mul(term_poly, {1: 1.0, 0: -self.x_vals[i]})
                     denom *= self.x_vals[k] - self.x_vals[i]
             for deg in term_poly:
                 term_poly[deg] *= self.y_vals[k] / denom
@@ -58,13 +52,10 @@ class LagrangeInterpolator:
                 final_poly[deg] += term_poly[deg]
 
         x = symbols("x")
-        poly_expr = sum(Rational(coef.numerator, coef.denominator) * x**deg for deg, coef in sorted(final_poly.items()))
+        poly_expr = sum(coef * x**deg for deg, coef in sorted(final_poly.items()))
         poly_expr = expand(poly_expr)
 
         def to_unicode_poly_string(expr):
-            def frac_to_str(frac):
-                return f"{frac.numerator}/{frac.denominator}" if frac.denominator != 1 else f"{frac.numerator}"
-
             poly = Poly(expr, x)
             coeffs = poly.all_coeffs()
             deg = len(coeffs) - 1
@@ -75,8 +66,8 @@ class LagrangeInterpolator:
                 if coeff == 0:
                     continue
                 sign = "-" if coeff < 0 else "+"
-                abs_frac = abs(Rational(coeff))
-                coeff_str = "" if abs_frac == 1 and power != 0 else frac_to_str(abs_frac)
+                abs_coeff = abs(coeff)
+                coeff_str = f"{abs_coeff:.4f}".rstrip("0").rstrip(".") if abs_coeff != 1 or power == 0 else ""
 
                 if power == 0:
                     term = f"{coeff_str}"
@@ -99,19 +90,19 @@ class LagrangeInterpolator:
         return f"L(x) = {to_unicode_poly_string(poly_expr)}"
 
     def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
-        perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
+        perturbed_y_vals = [y + perturbation for y in self.y_vals]
         perturbed_interpolator = LagrangeInterpolator(self.x_vals, perturbed_y_vals)
 
-        min_x = float(min(self.x_vals))
-        max_x = float(max(self.x_vals))
+        min_x = min(self.x_vals)
+        max_x = max(self.x_vals)
         if self.n == 1:
             return 0.0
 
         max_relative_error = 0.0
         for i in range(num_samples):
             x_sample = min_x + i * (max_x - min_x) / (num_samples - 1)
-            orig_val = float(self.interpolate(x_sample))
-            perturbed_val = float(perturbed_interpolator.interpolate(x_sample))
+            orig_val = self.interpolate(x_sample)
+            perturbed_val = perturbed_interpolator.interpolate(x_sample)
 
             if orig_val != 0:
                 rel_error = abs((perturbed_val - orig_val) / orig_val)
@@ -123,7 +114,12 @@ class LagrangeInterpolator:
         return max_relative_error
 
     def get_polynomial_expression(self):
-        return self.polynomial_expression
+        start_time = time.perf_counter()
+        polynomial_expression = self._format_polynomial_expression()
+        end_time = time.perf_counter()
+        self.construction_time = end_time - start_time
+        
+        return polynomial_expression
 
     def get_interpolation_time(self):
         return self.construction_time + self.interpolation_eval_time

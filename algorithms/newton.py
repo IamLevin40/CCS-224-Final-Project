@@ -1,23 +1,17 @@
 import time
-from fractions import Fraction
-from sympy import symbols, expand, Rational, Poly
+from sympy import symbols, expand, Poly
 from utils.string_manipulation import to_digit_superscript
 
 class NewtonInterpolator:
     def __init__(self, x_vals, y_vals):
-        self.x_vals = [Fraction(x) for x in x_vals]
-        self.y_vals = [Fraction(y) for y in y_vals]
+        self.x_vals = [float(x) for x in x_vals]
+        self.y_vals = [float(y) for y in y_vals]
         self.divided_diffs = self._compute_divided_differences()
         self.interpolation_eval_time = 0
 
-        start_time = time.perf_counter()
-        self.polynomial_expression = self._format_polynomial_expression()
-        end_time = time.perf_counter()
-        self.construction_time = end_time - start_time
-
     def _compute_divided_differences(self):
         n = len(self.x_vals)
-        table = [[Fraction(0) for _ in range(n)] for _ in range(n)]
+        table = [[0.0 for _ in range(n)] for _ in range(n)]
 
         for i in range(n):
             table[i][0] = self.y_vals[i]
@@ -32,7 +26,7 @@ class NewtonInterpolator:
 
     def interpolate(self, x):
         start = time.perf_counter()
-        
+
         result = self.divided_diffs[0]
         term = 1.0
         for i in range(1, len(self.divided_diffs)):
@@ -58,32 +52,27 @@ class NewtonInterpolator:
 
         polynomial = expand(polynomial)
 
-        def to_unicode_poly_string(poly):
-            def frac_to_str(r):
-                if r.denominator == 1:
-                    return f"{r.numerator}"
-                return f"{r.numerator}/{r.denominator}"
-
-            terms = []
-            poly = Poly(poly, x)
+        def to_unicode_poly_string(poly_expr):
+            poly = Poly(poly_expr, x)
             coeffs = poly.all_coeffs()
             degree = len(coeffs) - 1
+
+            terms = []
             for i, coeff in enumerate(coeffs):
                 power = degree - i
-                frac = Rational(coeff).limit_denominator()
-                if frac == 0:
+                if coeff == 0:
                     continue
-                sign = "-" if frac < 0 else "+"
-                abs_frac = abs(frac)
-                coeff_str = frac_to_str(abs_frac)
-                if abs_frac == 1 and power != 0:
-                    coeff_str = ""
+                sign = "-" if coeff < 0 else "+"
+                abs_coeff = abs(coeff)
+                coeff_str = f"{abs_coeff:.4f}".rstrip("0").rstrip(".") if abs_coeff != 1 or power == 0 else ""
+
                 if power == 0:
                     term = f"{coeff_str}"
                 elif power == 1:
-                    term = f"{coeff_str}x"
+                    term = f"{coeff_str}x" if coeff_str else "x"
                 else:
-                    term = f"{coeff_str}x{to_digit_superscript(power)}"
+                    term = f"{coeff_str}x{to_digit_superscript(power)}" if coeff_str else f"x{to_digit_superscript(power)}"
+
                 terms.append((sign, term))
 
             if not terms:
@@ -96,19 +85,19 @@ class NewtonInterpolator:
         return f"N(x) = {to_unicode_poly_string(polynomial)}"
 
     def get_numerical_stability(self, perturbation=1e-5, num_samples=1000):
-        perturbed_y_vals = [y + Fraction(perturbation) for y in self.y_vals]
+        perturbed_y_vals = [y + perturbation for y in self.y_vals]
         perturbed_interpolator = NewtonInterpolator(self.x_vals, perturbed_y_vals)
 
-        min_x = float(min(self.x_vals))
-        max_x = float(max(self.x_vals))
+        min_x = min(self.x_vals)
+        max_x = max(self.x_vals)
         if len(self.x_vals) == 1:
             return 0.0
 
         max_relative_error = 0.0
         for i in range(num_samples):
             x_sample = min_x + i * (max_x - min_x) / (num_samples - 1)
-            orig_val = float(self.interpolate(x_sample))
-            perturbed_val = float(perturbed_interpolator.interpolate(x_sample))
+            orig_val = self.interpolate(x_sample)
+            perturbed_val = perturbed_interpolator.interpolate(x_sample)
 
             if orig_val != 0:
                 rel_error = abs((perturbed_val - orig_val) / orig_val)
@@ -120,7 +109,12 @@ class NewtonInterpolator:
         return max_relative_error
 
     def get_polynomial_expression(self):
-        return self.polynomial_expression
+        start_time = time.perf_counter()
+        polynomial_expression = self._format_polynomial_expression()
+        end_time = time.perf_counter()
+        self.construction_time = end_time - start_time
+        
+        return polynomial_expression
 
     def get_interpolation_time(self):
         return self.construction_time + self.interpolation_eval_time

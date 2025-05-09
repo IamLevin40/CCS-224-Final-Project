@@ -92,29 +92,25 @@ class CompareOutputPanel(ft.Container):
         barycentric_results = self.compute_barycentric(x_vals, y_vals)
         self.update_barycentric_ui(barycentric_results)
 
-        self.update_polynomial_info()
         self.update_time_chart()
         self.update_stability_chart()
+        self.update_polynomial_info(lagrange_results[0], newton_results[0], barycentric_results[0])
 
     def compute_lagrange(self, x_vals, y_vals):
         if x_vals and y_vals and len(x_vals) > 1:
             lagrange_poly = LagrangeInterpolator(x_vals, y_vals)
             encoded_image = graph_lagrange(x_vals, y_vals, lagrange_poly)
-            expression = lagrange_poly.get_polynomial_expression()
-            time_taken = lagrange_poly.get_interpolation_time()
+            time_taken = lagrange_poly.get_evaluation_only_time()
             numerical_stability = lagrange_poly.get_numerical_stability()
-            return lagrange_poly, expression, time_taken, encoded_image, numerical_stability
+            return lagrange_poly, time_taken, encoded_image, numerical_stability
         return None, None, None, None, None
 
     def update_lagrange_ui(self, results):
-        lagrange_poly, expression, time_taken, encoded_image, numerical_stability = results
+        lagrange_poly, time_taken, encoded_image, numerical_stability = results
         if lagrange_poly:
             self.graph_columns[0].controls[1].content.content = Image(src_base64=encoded_image, fit=ImageFit.CONTAIN, expand=True)
-            self.expressions[0] = f"{expression}"
             self.time_taken[0] = time_taken
             self.numerical_stability[0] = numerical_stability
-        else:
-            self.expressions[0] = "Not enough valid data points."
         
         self.update()
 
@@ -122,21 +118,17 @@ class CompareOutputPanel(ft.Container):
         if x_vals and y_vals and len(x_vals) > 1:
             newton_poly = NewtonInterpolator(x_vals, y_vals)
             encoded_image = graph_newton(x_vals, y_vals, newton_poly)
-            expression = newton_poly.get_polynomial_expression()
-            time_taken = newton_poly.get_interpolation_time()
+            time_taken = newton_poly.get_evaluation_only_time()
             numerical_stability = newton_poly.get_numerical_stability()
-            return newton_poly, expression, time_taken, encoded_image, numerical_stability
+            return newton_poly, time_taken, encoded_image, numerical_stability
         return None, None, None, None, None
 
     def update_newton_ui(self, results):
-        newton_poly, expression, time_taken, encoded_image, numerical_stability = results
+        newton_poly, time_taken, encoded_image, numerical_stability = results
         if newton_poly:
             self.graph_columns[1].controls[1].content.content = Image(src_base64=encoded_image, fit=ImageFit.CONTAIN, expand=True)
-            self.expressions[1] = f"{expression}"
             self.time_taken[1] = time_taken
             self.numerical_stability[1] = numerical_stability
-        else:
-            self.expressions[1] = "Not enough valid data points."
         
         self.update()
 
@@ -144,21 +136,17 @@ class CompareOutputPanel(ft.Container):
         if x_vals and y_vals and len(x_vals) > 1:
             barycentric_poly = BarycentricInterpolator(x_vals, y_vals)
             encoded_image = graph_barycentric(x_vals, y_vals, barycentric_poly)
-            expression = barycentric_poly.get_polynomial_expression()
-            time_taken = barycentric_poly.get_interpolation_time()
+            time_taken = barycentric_poly.get_evaluation_only_time()
             numerical_stability = barycentric_poly.get_numerical_stability()
-            return barycentric_poly, expression, time_taken, encoded_image, numerical_stability
+            return barycentric_poly, time_taken, encoded_image, numerical_stability
         return None, None, None, None, None
 
     def update_barycentric_ui(self, results):
-        barycentric_poly, expression, time_taken, encoded_image, numerical_stability = results
+        barycentric_poly, time_taken, encoded_image, numerical_stability = results
         if barycentric_poly:
             self.graph_columns[2].controls[1].content.content = Image(src_base64=encoded_image, fit=ImageFit.CONTAIN, expand=True)
-            self.expressions[2] = f"{expression}"
             self.time_taken[2] = time_taken
             self.numerical_stability[2] = numerical_stability
-        else:
-            self.expressions[2] = "Not enough valid data points."
         
         self.update()
 
@@ -166,10 +154,15 @@ class CompareOutputPanel(ft.Container):
         labels = ["Lagrange", "Newton", "Barycentric"]
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        ax.bar(labels, self.time_taken, color='#2196F3')
+        bars = ax.bar(labels, self.time_taken, color='#2196F3')
         ax.set_ylabel('Time (seconds)')
         ax.set_title('Interpolation Time Comparison')
         ax.grid(True, linestyle='--', alpha=0.7)
+
+        for bar, time in zip(bars, self.time_taken):
+            height = bar.get_height()
+            label = f"{time*1000:.2f} ms" if time < 1 else f"{time:.4f} s"
+            ax.text(bar.get_x() + bar.get_width()/2., height, label, ha='center', va='bottom', rotation=0, fontsize=8)
 
         buf = io.BytesIO()
         plt.tight_layout()
@@ -179,7 +172,7 @@ class CompareOutputPanel(ft.Container):
         plt.close(fig)
 
         self.time_chart.controls = [
-            ft.Text("Time Taken (seconds)", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
+            ft.Text("Time Taken", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
             ft.Image(src_base64=time_chart_base64, fit=ft.ImageFit.CONTAIN, expand=True)
         ]
         self.update()
@@ -188,10 +181,14 @@ class CompareOutputPanel(ft.Container):
         labels = ["Lagrange", "Newton", "Barycentric"]
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        ax.bar(labels, self.numerical_stability, color='#18A045')
+        bars = ax.bar(labels, self.numerical_stability, color='#18A045')
         ax.set_ylabel('Stability Measure')
         ax.set_title('Numerical Stability Comparison')
         ax.grid(True, linestyle='--', alpha=0.7)
+
+        for bar, stability in zip(bars, self.numerical_stability):
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height, f'{stability:.4f}', ha='center', va='bottom', rotation=0, fontsize=8)
 
         buf = io.BytesIO()
         plt.tight_layout()
@@ -206,10 +203,17 @@ class CompareOutputPanel(ft.Container):
         ]
         self.update()
 
-    def update_polynomial_info(self):
-        lagrange_text = f"Lagrange:\n{self.expressions[0]}" if self.expressions[0] else "L(x): No data."
-        newton_text = f"Newton:\n{self.expressions[1]}" if self.expressions[1] else "N(x): No data."
-        barycentric_text = f"Barycentric:\n{self.expressions[2]}" if self.expressions[2] else "B(x): No data."
+    def update_polynomial_info(self, lagrange_poly, newton_poly, barycentric_poly):
+        self.polynomial_info.controls = [ft.Text("Evaluating f(x) from graphs...", size=16, color="#888888", text_align=ft.TextAlign.CENTER)]
+        self.update()
+
+        lagrange_poly_expr = lagrange_poly.get_polynomial_expression() if lagrange_poly else "L(x): No data."
+        newton_poly_expr = newton_poly.get_polynomial_expression() if newton_poly else "N(x): No data."
+        barycentric_poly_expr = barycentric_poly.get_polynomial_expression() if barycentric_poly else "B(x): No data."
+        
+        lagrange_text = f"Lagrange:\n{lagrange_poly_expr}"
+        newton_text = f"Newton:\n{newton_poly_expr}"
+        barycentric_text = f"Barycentric:\n{barycentric_poly_expr}"
 
         self.polynomial_info.controls = [
             ft.Text("Polynomial Expressions", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
