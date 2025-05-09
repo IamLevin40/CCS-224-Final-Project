@@ -2,12 +2,23 @@ import os
 import flet as ft
 
 from utils.server import SERVE_DIR
+from algorithms.lagrange import LagrangeInterpolator
+from algorithms.newton import NewtonInterpolator
 from algorithms.barycentric import BarycentricInterpolator
 from utils.dynamic_cartesian_plot import generate_multi_interpolation_plot
 
 class GraphOutputPanel(ft.Container):
     def __init__(self):
         super().__init__(padding=10, alignment=ft.alignment.top_left, expand=True)
+
+        self.selected_interpolator = "Barycentric"
+        self.interpolator_selector = ft.RadioGroup(content=ft.Row([
+                ft.Radio(value="Lagrange", label="Lagrange", fill_color="#2196F3"),
+                ft.Radio(value="Newton", label="Newton", fill_color="#2196F3"),
+                ft.Radio(value="Barycentric", label="Barycentric", fill_color="#2196F3"),
+            ], alignment=ft.MainAxisAlignment.START),
+            value="Barycentric", on_change=self.on_interpolator_change,
+        )
 
         self.graph_display = ft.Text("Insert data points\nto create graph.", size=16, color="#888888", text_align=ft.TextAlign.CENTER)
         self.graph_container = ft.Container(content=self.graph_display, bgcolor="#ffffff", alignment=ft.alignment.center, border_radius=10, padding=10, expand=True)
@@ -17,12 +28,16 @@ class GraphOutputPanel(ft.Container):
             [
                 ft.Row([
                     ft.Text("Graph", size=18, weight=ft.FontWeight.BOLD),
+                    self.interpolator_selector ,
                     ft.Container(content=self.info_line, expand=True, alignment=ft.alignment.center_right),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                self.graph_container
+                self.graph_container,
             ],
             alignment=ft.MainAxisAlignment.START, expand=True
         )
+
+    def on_interpolator_change(self, e):
+        self.selected_interpolator = e.control.value
 
     def update_output(self, datasets):
         """
@@ -49,7 +64,16 @@ class GraphOutputPanel(ft.Container):
             if not x_vals or not y_vals or len(x_vals) <= 1:
                 continue
 
-            interpolator = BarycentricInterpolator(x_vals, y_vals)
+            if self.selected_interpolator == "Lagrange":
+                interpolator = LagrangeInterpolator(x_vals, y_vals)
+                print(f"Using Lagrange Interpolator for {data.get('label', f'Line {i+1}')}")
+            elif self.selected_interpolator == "Newton":
+                interpolator = NewtonInterpolator(x_vals, y_vals)
+                print(f"Using Newton Interpolator for {data.get('label', f'Line {i+1}')}")
+            else:
+                interpolator = BarycentricInterpolator(x_vals, y_vals)
+                print(f"Using Barycentric Interpolator for {data.get('label', f'Line {i+1}')}")
+            
             interpolated_data.append({
                 "x_vals": x_vals,
                 "y_vals": y_vals,
