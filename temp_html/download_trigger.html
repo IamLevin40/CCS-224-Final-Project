@@ -1,0 +1,21 @@
+
+    <!DOCTYPE html>
+    <html>
+    <body>
+        <a id="downloadLink" 
+        href="data:text/plain;base64,W3sibGFiZWwiOiAibGluZV8xIiwgImNvbG9yIjogIiMyNUVDMjgiLCAicG9pbnRzIjogW3sieCI6IDEuMCwgInkiOiAyLjB9LCB7IngiOiAyLjAsICJ5IjogNS4wfSwgeyJ4IjogMy4wLCAieSI6IDcuMH1dfSwgeyJsYWJlbCI6ICJsaW5lXzIiLCAiY29sb3IiOiAiIzc4MWM4NiIsICJwb2ludHMiOiBbeyJ4IjogNC4wLCAieSI6IDUuMH0sIHsieCI6IC0yLjAsICJ5IjogNS4wfSwgeyJ4IjogNi4wLCAieSI6IDMuMH1dfV0=" 
+        download="line_data.txt" 
+        style="display:none;">
+        Download File
+        </a>
+        <script>
+        document.getElementById('downloadLink').click();
+        // Wait a short moment then attempt to close the window
+        setTimeout(() => {
+            window.open('', '_self');
+            window.close();
+        }, 250);
+        </script>
+    </body>
+    </html>
+    

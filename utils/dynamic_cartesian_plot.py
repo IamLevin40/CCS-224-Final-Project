@@ -87,12 +87,118 @@ def generate_plot_html(fig):
         <div id="graph"></div>
         <script>
             const fig = {fig_json};
+            const fullData = JSON.parse(JSON.stringify(fig.data));
+            fig.data.forEach(trace => {{
+                if (trace.mode === "lines") {{
+                    trace.x = [];
+                    trace.y = [];
+                }}
+            }});
             const config = {{
                 scrollZoom: true,
                 displayModeBar: false,
                 displaylogo: false
             }};
-            Plotly.newPlot("graph", fig.data, fig.layout, config);
+            Plotly.newPlot("graph", fig.data, fig.layout, config).then(() => {{
+                animateLines();
+            }});
+            function animateLines() {{
+                const steps = 100;
+                const delay = 4;  // ms between steps
+
+                let frames = [];
+
+                fullData.forEach((trace, traceIndex) => {{
+                    if (trace.mode !== "lines") return;
+
+                    const len = trace.x.length;
+                    for (let i = 1; i <= steps; i++) {{
+                        const cutoff = Math.floor((i / steps) * len);
+                        frames.push({{
+                            traceIndex,
+                            x: trace.x.slice(0, cutoff),
+                            y: trace.y.slice(0, cutoff)
+                        }});
+                    }}
+                }});
+
+                let i = 0;
+                function step() {{
+                    if (i >= frames.length) return;
+                    const f = frames[i];
+                    Plotly.restyle("graph", {{
+                        x: [f.x],
+                        y: [f.y]
+                    }}, [f.traceIndex]);
+                    i++;
+                    setTimeout(step, delay);
+                }}
+
+                step();
+            }}
+        </script>
+        <canvas id="fireworks-canvas" style="position:absolute;top:0;left:0;pointer-events:none;width:100%;height:100%;z-index:999;"></canvas>
+        <script>
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function explode(x, y, color) {{
+                for (let i = 0; i < 100; i++) {{
+                    let angle = Math.random() * 2 * Math.PI;
+                    let speed = Math.random() * 5 + 2;
+                    let vx = Math.cos(angle) * speed;
+                    let vy = Math.sin(angle) * speed;
+                    let alpha = 1;
+                    let radius = (Math.random() * 2 + 1) * 8;
+
+                    const particle = {{ x, y, vx, vy, alpha, radius, color }};
+                    particles.push(particle);
+                }}
+            }}
+
+            let particles = [];
+
+            function draw() {{
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles = particles.filter(p => p.alpha > 0);
+                for (let p of particles) {{
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = `rgb(${{p.color}})`;
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(Math.random() * 2 * Math.PI);
+                    ctx.fillRect(-p.radius / 2, -p.radius / 8, p.radius, p.radius / 4);
+                    ctx.restore();
+
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.02;
+                }}
+                requestAnimationFrame(draw);
+            }}
+
+            function launchFireworks() {{
+                for (let i = 0; i < 3; i++) {{
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.8; // avoid bottom edge
+                    const color = [
+                        '75,42,227',
+                        '224,25,77',
+                        '25,224,124',
+                        '247,238,55',
+                        '235,40,190'
+                    ][Math.floor(Math.random() * 5)];
+
+                    explode(x, y, color);
+                }}
+            }}
+
+            setTimeout(() => {{
+                launchFireworks();
+                draw();
+            }}, 20);
         </script>
     </body>
     </html>

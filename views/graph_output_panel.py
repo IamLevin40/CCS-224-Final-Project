@@ -70,7 +70,7 @@ class GraphOutputPanel(ft.Container):
             elif self.selected_interpolator == "Newton":
                 interpolator = NewtonInterpolator(x_vals, y_vals)
                 print(f"Using Newton Interpolator for {data.get('label', f'Line {i+1}')}")
-            else:
+            elif self.selected_interpolator == "Barycentric":
                 interpolator = BarycentricInterpolator(x_vals, y_vals)
                 print(f"Using Barycentric Interpolator for {data.get('label', f'Line {i+1}')}")
             
