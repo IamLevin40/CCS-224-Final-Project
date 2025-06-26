@@ -1,6 +1,58 @@
 import plotly, json
 import plotly.graph_objs as go
+from plotly.offline import plot
 import numpy as np
+
+def generate_eval_history_plot(eval_times):
+    if not eval_times or len(eval_times) < 1:
+        return "<p>No data</p>"
+
+    min_val = min(eval_times)
+    mean_val = sum(eval_times) / len(eval_times)
+    max_val = max(eval_times)
+
+    min_ms = min_val * 1000
+    mean_ms = mean_val * 1000
+    max_ms = max_val * 1000
+
+    x_vals = ["Min", "Mean", "Max"]
+    y_vals = [min_ms, mean_ms, max_ms]
+
+    text_labels = [f"{ms:.2f} ms" for ms in y_vals]
+
+    trace = go.Scatter(
+        x=x_vals,
+        y=y_vals,
+        mode="lines+markers+text",
+        line=dict(color="#2196F3", width=2),
+        marker=dict(size=8),
+        text=text_labels,
+        textposition="top center",
+        hoverinfo="x+y",
+        name="Eval Time"
+    )
+
+    computation_count = len(eval_times)
+
+    layout = go.Layout(
+        showlegend=False,
+        height=180,
+        margin=dict(l=20, r=20, t=30, b=30),
+        xaxis=dict(showgrid=False, zeroline=False),
+        yaxis=dict(showgrid=True, zeroline=False, title="Time (ms)"),
+        annotations=[
+            dict(
+                text=f"Computation Count: {computation_count}",
+                xref="paper", yref="paper",
+                x=0, y=1.2,
+                showarrow=False,
+                font=dict(size=12, color="black"),
+            )
+        ]
+    )
+
+    fig = go.Figure(data=[trace], layout=layout)
+    return plot(fig, output_type="div", include_plotlyjs="cdn", config={"displayModeBar": False})
 
 def generate_interpolation_trace(x_range, y_range, name="Interpolation", color="#0000FF"):
     return go.Scatter(x=x_range, y=y_range, mode="lines", name=name, line=dict(color=color, width=2))
@@ -103,8 +155,8 @@ def generate_plot_html(fig):
                 animateLines();
             }});
             function animateLines() {{
-                const steps = 100;
-                const delay = 4;  // ms between steps
+                const steps = 25;
+                const delay = 5;  // ms between steps
 
                 let frames = [];
 
@@ -217,6 +269,7 @@ def generate_multi_interpolation_plot(data_sets):
     all_x_vals, all_y_vals = [], []
     total_eval_time = 0.0
     max_stability = None
+    memory_usage = 0.0
 
     for i, data in enumerate(data_sets):
         x_vals = [float(x) for x in data["x_vals"]]
@@ -234,7 +287,8 @@ def generate_multi_interpolation_plot(data_sets):
         all_traces.extend([trace_curve, trace_points])
         all_x_vals.extend(x_vals)
         all_y_vals.extend(y_vals)
-        
+        memory_usage = max(memory_usage, interpolator.get_memory_usage())
+
         try:
             total_eval_time += interpolator.get_evaluation_only_time()
             stability = interpolator.get_numerical_stability()
@@ -243,6 +297,7 @@ def generate_multi_interpolation_plot(data_sets):
         except Exception as e:
             print(f"Error retrieving time/stability: {e}")
 
+
     layout = create_layout(all_x_vals, all_y_vals)
     fig = go.Figure(data=all_traces, layout=layout)
-    return generate_plot_html(fig), total_eval_time, max_stability
+    return generate_plot_html(fig), total_eval_time, max_stability, memory_usage

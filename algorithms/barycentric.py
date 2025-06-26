@@ -1,4 +1,4 @@
-import time
+import time, sys
 from sympy import symbols, expand, Poly
 from utils.string_manipulation import to_digit_superscript
 
@@ -139,3 +139,30 @@ class BarycentricInterpolator:
 
     def get_evaluation_only_time(self):
         return self.interpolation_eval_time
+
+    def get_memory_usage(self):
+        def deep_getsizeof(obj, seen_ids=set()):
+            if id(obj) in seen_ids:
+                return 0
+            seen_ids.add(id(obj))
+            size = sys.getsizeof(obj)
+
+            if isinstance(obj, dict):
+                size += sum(deep_getsizeof(k, seen_ids) + deep_getsizeof(v, seen_ids) for k, v in obj.items())
+            elif isinstance(obj, (list, tuple, set)):
+                size += sum(deep_getsizeof(i, seen_ids) for i in obj)
+
+            return size
+
+        total = 0
+        total += deep_getsizeof(self.x_vals)
+        total += deep_getsizeof(self.y_vals)
+        total += deep_getsizeof(self.weights)
+
+        try:
+            coeffs = self._compute_polynomial_coefficients()
+            total += deep_getsizeof(coeffs)
+        except Exception:
+            pass
+
+        return round(total / 1024, 2)
